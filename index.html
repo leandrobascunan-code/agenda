@@ -2,6 +2,14 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <!-- Etiquetas para que funcione como App en iPhone y Android -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Marina de Chile">
+  <!-- Ícono para la pantalla de inicio del celular -->
+  <link rel="apple-touch-icon" href="INSIGNIA.png">
+  
   <title>Coordinación - Marina de Chile</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -18,22 +26,39 @@
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
   </style>
 </head>
-<body class="flex h-screen text-slate-800 overflow-hidden">
+<body class="flex flex-col md:flex-row h-screen text-slate-800 overflow-hidden">
+
+  <!-- Header Móvil (Solo se ve en celulares) -->
+  <div class="md:hidden flex items-center justify-between bg-[#0f172a] text-white p-4 z-30">
+    <div class="flex items-center space-x-3">
+      <img src="INSIGNIA.png" alt="Logo" class="h-10 object-contain bg-white rounded-full p-1">
+      <h1 class="text-sm font-bold tracking-widest text-slate-100">MARINA DE CHILE</h1>
+    </div>
+    <button onclick="toggleSidebar()" class="text-white hover:text-indigo-400 focus:outline-none p-2">
+      <i class="fa-solid fa-bars text-2xl"></i>
+    </button>
+  </div>
+
+  <!-- Overlay para fondo oscuro en móvil -->
+  <div id="sidebarOverlay" class="fixed inset-0 bg-slate-900/50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
 
   <!-- Sidebar Lateral -->
-  <aside class="w-72 bg-[#0f172a] text-white flex flex-col z-20">
-    <div class="p-8 text-center flex flex-col items-center border-b border-slate-800">
-      <div class="w-full h-24 flex items-center justify-center mb-4">
-        <img id="logoSidebar" src="" alt="Logo" class="max-w-full max-h-full object-contain hidden drop-shadow-md">
-        <div id="iconSidebarContainer" class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center border-2 border-indigo-500/30">
-          <i class="fa-solid fa-ship text-4xl text-indigo-400"></i>
-        </div>
+  <aside id="sidebar" class="fixed md:static inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out w-72 bg-[#0f172a] text-white flex flex-col z-50">
+    <!-- Botón cerrar en móvil -->
+    <button onclick="toggleSidebar()" class="md:hidden absolute top-4 right-4 text-slate-400 hover:text-white">
+      <i class="fa-solid fa-xmark text-2xl"></i>
+    </button>
+
+    <div class="p-8 mt-4 md:mt-0 text-center flex flex-col items-center border-b border-slate-800">
+      <div class="w-full h-32 flex items-center justify-center mb-4 bg-white/5 rounded-2xl p-4">
+        <!-- Logo Fijo -->
+        <img id="logoSidebar" src="INSIGNIA.png" alt="Logo Colegio Marina de Chile" class="max-w-full max-h-full object-contain drop-shadow-md">
       </div>
       <h1 class="text-lg font-bold tracking-widest text-slate-100">MARINA DE CHILE</h1>
       <p class="text-[10px] text-indigo-400 font-bold tracking-[0.2em] mt-1">COORDINACIÓN UTP</p>
     </div>
     
-    <nav class="flex-1 px-4 py-6 space-y-2">
+    <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
       <button onclick="cambiarSeccion('panel')" class="w-full flex items-center px-5 py-3.5 rounded-xl bg-indigo-600/10 text-indigo-400 hover:bg-indigo-600 hover:text-white transition group border border-indigo-500/20">
         <i class="fa-solid fa-layer-group w-8 text-lg"></i> <span class="font-medium">Panel Principal</span>
       </button>
@@ -48,41 +73,41 @@
 
   <!-- Contenido Principal -->
   <main class="flex-1 overflow-y-auto relative bg-slate-50">
-    <header class="sticky top-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-10 py-6 flex justify-between items-center z-10">
+    <header class="sticky top-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 md:px-10 py-4 md:py-6 flex justify-between items-center z-10">
       <div>
-        <p class="text-xs text-indigo-600 font-bold uppercase tracking-widest mb-1">Sistema de Gestión</p>
-        <h2 class="text-2xl font-extrabold text-slate-800">Hola, <span id="nombreUsuario" class="text-indigo-600">Usuario</span></h2>
+        <p class="text-xs text-indigo-600 font-bold uppercase tracking-widest mb-1 hidden md:block">Sistema de Gestión</p>
+        <h2 class="text-xl md:text-2xl font-extrabold text-slate-800">Hola, <span id="nombreUsuario" class="text-indigo-600">Usuario</span></h2>
       </div>
-      <button onclick="cambiarSeccion('actividades'); limpiarFormulario();" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl shadow-md transition font-medium flex items-center text-sm">
-        <i class="fa-solid fa-plus mr-2"></i> Nueva Actividad
+      <button onclick="cambiarSeccion('actividades'); limpiarFormulario();" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-xl shadow-md transition font-medium flex items-center text-sm">
+        <i class="fa-solid fa-plus md:mr-2"></i> <span class="hidden md:inline">Nueva Actividad</span>
       </button>
     </header>
 
-    <div class="p-10 max-w-6xl mx-auto">
+    <div class="p-4 md:p-10 max-w-6xl mx-auto pb-20">
       
       <!-- SECCIÓN: PANEL PRINCIPAL -->
       <section id="panel" class="seccion activa">
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 space-y-3 md:space-y-0">
           <h3 class="text-xl font-bold text-slate-800">Calendario de Actividades</h3>
-          <div id="cargandoEventos" class="text-sm font-medium text-indigo-600 hidden">
+          <div id="cargandoEventos" class="text-sm font-medium text-indigo-600 hidden bg-indigo-50 px-3 py-1 rounded-full">
             <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Sincronizando...
           </div>
         </div>
         
-        <div class="flex space-x-2 mb-6 bg-white p-1.5 rounded-xl shadow-sm border border-slate-200 inline-flex">
-          <button class="tab-btn active px-5 py-2 rounded-lg font-medium text-sm transition" onclick="filtrarVista('hoy', this)">Hoy</button>
-          <button class="tab-btn px-5 py-2 rounded-lg font-medium text-sm transition hover:bg-slate-50" onclick="filtrarVista('semana', this)">Esta Semana</button>
-          <button class="tab-btn px-5 py-2 rounded-lg font-medium text-sm transition hover:bg-slate-50" onclick="filtrarVista('mes', this)">Este Mes</button>
+        <div class="flex overflow-x-auto space-x-2 mb-6 bg-white p-1.5 rounded-xl shadow-sm border border-slate-200 hide-scrollbar whitespace-nowrap">
+          <button class="tab-btn active px-4 md:px-5 py-2 rounded-lg font-medium text-sm transition" onclick="filtrarVista('hoy', this)">Hoy</button>
+          <button class="tab-btn px-4 md:px-5 py-2 rounded-lg font-medium text-sm transition hover:bg-slate-50" onclick="filtrarVista('semana', this)">Esta Semana</button>
+          <button class="tab-btn px-4 md:px-5 py-2 rounded-lg font-medium text-sm transition hover:bg-slate-50" onclick="filtrarVista('mes', this)">Este Mes</button>
         </div>
 
-        <p id="tituloRangoFechas" class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">MOSTRANDO ACTIVIDADES DE HOY</p>
+        <p id="tituloRangoFechas" class="text-xs md:text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">MOSTRANDO ACTIVIDADES DE HOY</p>
         <div id="listaEventos" class="space-y-4"></div>
       </section>
 
       <!-- SECCIÓN: FORMULARIO -->
       <section id="actividades" class="seccion">
-        <div class="bg-white p-10 rounded-2xl shadow-sm border border-slate-200 max-w-3xl mx-auto">
-          <h3 id="tituloFormulario" class="text-2xl font-bold mb-6 text-slate-800 border-b border-slate-100 pb-4">Agendar Actividad</h3>
+        <div class="bg-white p-6 md:p-10 rounded-2xl shadow-sm border border-slate-200 max-w-3xl mx-auto">
+          <h3 id="tituloFormulario" class="text-xl md:text-2xl font-bold mb-6 text-slate-800 border-b border-slate-100 pb-4">Agendar Actividad</h3>
           
           <div id="errorFormulario" class="hidden bg-red-100 text-red-700 p-4 rounded-xl text-sm font-medium mb-6 flex items-center shadow-inner border border-red-200">
             <i class="fa-solid fa-triangle-exclamation mr-3 text-lg"></i>
@@ -92,9 +117,9 @@
           <form id="formActividad" onsubmit="guardarEvento(event)" class="space-y-5">
             <input type="hidden" id="eventoId" value="">
             
-            <div class="grid grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
               <div class="col-span-1">
-                <label class="block text-sm font-bold text-slate-700 mb-2">Tipo de Actividad</label>
+                <label class="block text-sm font-bold text-slate-700 mb-2">Tipo</label>
                 <select id="tipoActividad" required class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
                   <option value="" disabled selected>Seleccione...</option>
                   <option value="Entrevista apoderado">Entrevista apoderado</option>
@@ -106,35 +131,37 @@
                   <option value="Otras">Otras</option>
                 </select>
               </div>
-              <div class="col-span-2">
+              <div class="col-span-1 md:col-span-2">
                 <label class="block text-sm font-bold text-slate-700 mb-2">Título / Asunto</label>
                 <input type="text" id="titulo" required class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm" placeholder="Ej. Revisión de notas">
               </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
               <div>
                 <label class="block text-sm font-bold text-slate-700 mb-2">Fecha</label>
                 <input type="date" id="fecha" required class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
               </div>
-              <div>
-                <label class="block text-sm font-bold text-slate-700 mb-2">Hora de Inicio</label>
-                <input type="time" id="hora" required class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
-              </div>
-              <div>
-                <label class="block text-sm font-bold text-slate-700 mb-2">Duración (minutos)</label>
-                <input type="number" id="duracion" required min="1" value="60" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
+              <div class="grid grid-cols-2 md:grid-cols-1 gap-4 md:gap-0">
+                <div class="md:mb-0">
+                  <label class="block text-sm font-bold text-slate-700 mb-2">Inicio</label>
+                  <input type="time" id="hora" required class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-slate-700 mb-2">Duración (min)</label>
+                  <input type="number" id="duracion" required min="1" value="60" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
+                </div>
               </div>
             </div>
 
             <div>
               <label class="block text-sm font-bold text-slate-700 mb-2">Descripción (Opcional)</label>
-              <textarea id="descripcion" rows="3" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white" placeholder="Detalles de la reunión..."></textarea>
+              <textarea id="descripcion" rows="3" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm" placeholder="Detalles de la reunión..."></textarea>
             </div>
             
-            <div class="flex space-x-4 pt-4">
-              <button type="button" onclick="cambiarSeccion('panel')" class="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition">Cancelar</button>
-              <button type="submit" id="btnGuardar" class="w-2/3 bg-indigo-600 text-white font-bold py-3.5 rounded-xl shadow-md hover:bg-indigo-700 transition flex justify-center items-center">
+            <div class="flex flex-col-reverse md:flex-row md:space-x-4 pt-4 gap-y-3 md:gap-y-0">
+              <button type="button" onclick="cambiarSeccion('panel')" class="w-full md:w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition mt-3 md:mt-0">Cancelar</button>
+              <button type="submit" id="btnGuardar" class="w-full md:w-2/3 bg-indigo-600 text-white font-bold py-3.5 rounded-xl shadow-md hover:bg-indigo-700 transition flex justify-center items-center">
                 Guardar Actividad
               </button>
             </div>
@@ -144,24 +171,16 @@
 
       <!-- SECCIÓN: CONFIGURACIÓN -->
       <section id="configuracion" class="seccion">
-        <div class="max-w-2xl bg-white p-10 rounded-2xl shadow-sm border border-slate-200">
-          <h3 class="text-xl font-bold mb-6 text-slate-800 border-b border-slate-100 pb-4">Personalizar Perfil</h3>
+        <div class="max-w-2xl bg-white p-6 md:p-10 rounded-2xl shadow-sm border border-slate-200 mx-auto">
+          <h3 class="text-xl md:text-2xl font-bold mb-6 text-slate-800 border-b border-slate-100 pb-4">Personalizar Perfil</h3>
           <div class="space-y-6">
             <div>
-              <label class="block text-sm font-bold text-slate-700 mb-2">Nombre Completo</label>
-              <input type="text" id="inputNombreConfig" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none" placeholder="Leandro Bascuñán">
+              <label class="block text-sm font-bold text-slate-700 mb-2">Tu Nombre Completo</label>
+              <input type="text" id="inputNombreConfig" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none" placeholder="Ej. Leandro Bascuñán">
+              <p class="text-xs text-slate-500 mt-2">El logo de la institución ("INSIGNIA.png") ya está configurado por defecto para todos los usuarios.</p>
             </div>
-            <div>
-              <label class="block text-sm font-bold text-slate-700 mb-2">Logo de la Institución</label>
-              <div class="flex items-center space-x-4">
-                <div class="w-32 h-20 bg-slate-50 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 overflow-hidden p-2">
-                  <img id="previewLogoConfig" src="" class="hidden max-w-full max-h-full object-contain">
-                  <i id="previewIconConfig" class="fa-solid fa-image text-2xl"></i>
-                </div>
-                <input type="file" id="inputLogoConfig" accept="image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-              </div>
-            </div>
-            <button onclick="guardarConfiguracion()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-6 rounded-xl w-full mt-4 transition">Guardar Cambios</button>
+            
+            <button onclick="guardarConfiguracion()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 px-6 rounded-xl w-full mt-4 transition shadow-md">Guardar Cambios</button>
           </div>
         </div>
       </section>
@@ -169,14 +188,14 @@
   </main>
 
   <!-- Modal Eliminar -->
-  <div id="modalEliminar" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden z-50 flex items-center justify-center">
-    <div class="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl transform transition-all scale-95 opacity-0" id="modalBox">
+  <div id="modalEliminar" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[60] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl transform transition-all scale-95 opacity-0" id="modalBox">
       <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4"><i class="fa-solid fa-trash-can"></i></div>
       <h3 class="text-xl font-bold text-center text-slate-800 mb-2">¿Eliminar actividad?</h3>
-      <p class="text-center text-slate-500 mb-6 text-sm">Esta acción borrará el evento de tu calendario.</p>
+      <p class="text-center text-slate-500 mb-6 text-sm">Esta acción borrará el evento de tu calendario de Google.</p>
       <div class="flex space-x-3">
         <button onclick="cerrarModalEliminar()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition">Cancelar</button>
-        <button onclick="ejecutarEliminar()" id="btnConfirmarEliminar" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl shadow-md transition">Sí, eliminar</button>
+        <button onclick="ejecutarEliminar()" id="btnConfirmarEliminar" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl shadow-md transition">Eliminar</button>
       </div>
     </div>
   </div>
@@ -199,10 +218,26 @@
       'Otras':                { bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200', gradient: 'from-slate-400 to-gray-500', icon: 'fa-calendar-check' }
     };
 
+    // Lógica para menú móvil
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      sidebar.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+    }
+
     function cambiarSeccion(id) {
       document.querySelectorAll('.seccion').forEach(sec => sec.classList.remove('activa'));
       document.getElementById(id).classList.add('activa');
       if(id === 'panel') cargarDatosDeCalendar();
+      
+      // Auto-cerrar menú en móviles al hacer clic
+      if(window.innerWidth < 768) {
+          const sidebar = document.getElementById('sidebar');
+          if(!sidebar.classList.contains('-translate-x-full')){
+              toggleSidebar();
+          }
+      }
     }
 
     async function cargarDatosDeCalendar() {
@@ -278,7 +313,7 @@
         });
         const res = await respuesta.json();
         
-        btn.innerHTML = 'Sí, eliminar';
+        btn.innerHTML = 'Eliminar';
         btn.disabled = false;
         cerrarModalEliminar();
         
@@ -286,7 +321,7 @@
         else alert('Error al eliminar: ' + res.error);
 
       } catch(error) {
-          btn.innerHTML = 'Sí, eliminar';
+          btn.innerHTML = 'Eliminar';
           btn.disabled = false;
           alert("Error de conexión");
       }
@@ -346,9 +381,9 @@
       const contenedor = document.getElementById('listaEventos');
       if (eventos.length === 0) {
         contenedor.innerHTML = `
-          <div class="text-center py-12 bg-white rounded-2xl border-2 border-dashed border-slate-200 text-slate-400">
-            <i class="fa-solid fa-mug-hot text-4xl mb-3 text-slate-300"></i>
-            <p class="font-medium">No hay actividades agendadas en este periodo.</p>
+          <div class="text-center py-10 md:py-12 bg-white rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 mx-2 md:mx-0">
+            <i class="fa-solid fa-mug-hot text-3xl md:text-4xl mb-3 text-slate-300"></i>
+            <p class="font-medium text-sm md:text-base">No hay actividades agendadas.</p>
           </div>`;
         return;
       }
@@ -367,30 +402,31 @@
         const estilo = estiloTipos[ev.tipo] || estiloTipos['Otras'];
 
         return `
-          <div class="group relative flex items-center justify-between p-5 bg-white rounded-2xl border border-slate-200 hover:border-indigo-300 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5">
+          <div class="group relative flex flex-col md:flex-row md:items-center justify-between p-4 md:p-5 bg-white rounded-2xl border border-slate-200 hover:border-indigo-300 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 mb-3 md:mb-0">
             <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b ${estilo.gradient} rounded-l-2xl"></div>
-            <div class="flex items-center space-x-5 pl-3 w-full">
-              <div class="flex flex-col items-center justify-center ${estilo.bg} ${estilo.text} w-16 h-16 rounded-xl border ${estilo.border} flex-shrink-0 shadow-inner">
-                <span class="text-[10px] font-bold uppercase tracking-wider">${mesStr}</span>
-                <span class="text-xl font-extrabold leading-none mt-0.5">${dia}</span>
+            
+            <div class="flex items-center space-x-4 md:space-x-5 pl-2 md:pl-3 w-full">
+              <div class="flex flex-col items-center justify-center ${estilo.bg} ${estilo.text} w-14 h-14 md:w-16 md:h-16 rounded-xl border ${estilo.border} flex-shrink-0 shadow-inner">
+                <span class="text-[9px] md:text-[10px] font-bold uppercase tracking-wider">${mesStr}</span>
+                <span class="text-lg md:text-xl font-extrabold leading-none mt-0.5">${dia}</span>
               </div>
-              <div class="flex-1 min-w-0">
+              <div class="flex-1 min-w-0 pr-2">
                 <div class="flex items-center space-x-2 mb-1">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${estilo.bg} ${estilo.text} border ${estilo.border}">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-xs font-bold ${estilo.bg} ${estilo.text} border ${estilo.border} truncate">
                     <i class="fa-solid ${estilo.icon} mr-1.5"></i> ${ev.tipo || 'Otras'}
                   </span>
                 </div>
-                <h4 class="text-lg font-bold text-slate-800 truncate">${ev.titulo}</h4>
-                <div class="flex items-center text-sm text-slate-500 mt-1 space-x-4">
-                  <span class="flex items-center font-medium"><i class="fa-regular fa-clock text-slate-400 mr-1.5"></i> ${horaInicioStr} - ${horaFinStr}</span>
-                  ${ev.descripcion ? `<span class="truncate max-w-[200px] hidden md:inline-block border-l border-slate-300 pl-4">${ev.descripcion}</span>` : ''}
+                <h4 class="text-base md:text-lg font-bold text-slate-800 leading-tight md:truncate">${ev.titulo}</h4>
+                <div class="flex flex-col md:flex-row md:items-center text-xs md:text-sm text-slate-500 mt-1 md:space-x-4">
+                  <span class="flex items-center font-medium mb-1 md:mb-0"><i class="fa-regular fa-clock text-slate-400 mr-1.5"></i> ${horaInicioStr} - ${horaFinStr}</span>
+                  ${ev.descripcion ? `<span class="truncate md:max-w-[200px] border-none md:border-solid md:border-l border-slate-300 md:pl-4 mt-1 md:mt-0 text-xs italic md:not-italic">${ev.descripcion}</span>` : ''}
                 </div>
               </div>
             </div>
             
-            <div class="flex items-center space-x-2 md:opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white pl-4">
-              <button onclick="prepararEdicion('${ev.id}')" title="Editar" class="w-10 h-10 rounded-full bg-slate-50 hover:bg-amber-100 text-slate-500 hover:text-amber-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-pen text-sm"></i></button>
-              <button onclick="abrirModalEliminar('${ev.id}')" title="Eliminar" class="w-10 h-10 rounded-full bg-slate-50 hover:bg-red-100 text-slate-500 hover:text-red-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-trash text-sm"></i></button>
+            <div class="flex items-center justify-end space-x-2 mt-4 md:mt-0 pt-3 md:pt-0 border-t border-slate-100 md:border-none md:opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white md:pl-4">
+              <button onclick="prepararEdicion('${ev.id}')" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-50 hover:bg-amber-100 text-slate-500 hover:text-amber-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-pen text-xs md:text-sm"></i></button>
+              <button onclick="abrirModalEliminar('${ev.id}')" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-50 hover:bg-red-100 text-slate-500 hover:text-red-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-trash text-xs md:text-sm"></i></button>
             </div>
           </div>
         `;
@@ -481,31 +517,7 @@
         localStorage.setItem('coordinacion_nombre', nombre);
         document.getElementById('nombreUsuario').innerText = nombre;
       }
-      const fileInput = document.getElementById('inputLogoConfig');
-      if (fileInput.files && fileInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const src = e.target.result;
-          localStorage.setItem('coordinacion_logo', src);
-          aplicarLogo(src);
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-      }
       cambiarSeccion('panel');
-    }
-
-    function aplicarLogo(src) {
-      const imgSidebar = document.getElementById('logoSidebar');
-      const iconSidebar = document.getElementById('iconSidebarContainer');
-      imgSidebar.src = src;
-      imgSidebar.classList.remove('hidden');
-      iconSidebar.classList.add('hidden');
-      
-      const previewImg = document.getElementById('previewLogoConfig');
-      const previewIcon = document.getElementById('previewIconConfig');
-      previewImg.src = src;
-      previewImg.classList.remove('hidden');
-      previewIcon.classList.add('hidden');
     }
 
     window.onload = function() {
@@ -516,8 +528,6 @@
       } else {
         document.getElementById('nombreUsuario').innerText = 'Usuario';
       }
-      const l = localStorage.getItem('coordinacion_logo');
-      if (l) aplicarLogo(l);
       cargarDatosDeCalendar();
     };
   </script>
