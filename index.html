@@ -24,6 +24,15 @@
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+    /* CELULAR: campos de texto más grandes */
+    @media (max-width: 767px) {
+      input, select, textarea { font-size: 16px !important; }
+    }
+    /* Pantallas táctiles: los botones de cada tarjeta siempre visibles */
+    @media (hover: none) {
+      .acciones-card { opacity: 1 !important; }
+    }
   </style>
 </head>
 <body class="flex flex-col md:flex-row h-screen text-slate-800 overflow-hidden">
@@ -78,7 +87,7 @@
         <p class="text-xs text-indigo-600 font-bold uppercase tracking-widest mb-1 hidden md:block">Sistema de Gestión</p>
         <h2 class="text-xl md:text-2xl font-extrabold text-slate-800">Hola, <span id="nombreUsuario" class="text-indigo-600">Usuario</span></h2>
       </div>
-      <button onclick="cambiarSeccion('actividades'); limpiarFormulario();" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-xl shadow-md transition font-medium flex items-center text-sm">
+      <button onclick="cambiarSeccion('actividades'); limpiarFormulario();" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 md:px-5 py-2.5 rounded-xl shadow-md transition font-medium flex items-center text-sm">
         <i class="fa-solid fa-plus md:mr-2"></i> <span class="hidden md:inline">Nueva Actividad</span>
       </button>
     </header>
@@ -87,65 +96,74 @@
       
       <!-- SECCIÓN: PANEL PRINCIPAL -->
       <section id="panel" class="seccion activa">
-        <div class="flex items-center justify-between mb-3 gap-2">
-          <h3 class="text-lg md:text-xl font-bold text-slate-800">Calendario de Actividades</h3>
+        <div class="flex flex-wrap items-center justify-between mb-3 gap-2">
+          <h3 class="text-base md:text-xl font-bold text-slate-800">Calendario de Actividades</h3>
           <div class="flex items-center gap-2">
             <div id="cargandoEventos" class="text-xs md:text-sm font-medium text-indigo-600 hidden bg-indigo-50 px-3 py-1 rounded-full">
               <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Sincronizando...
             </div>
-            <button id="btnToggleCal" onclick="alternarCalendario()" class="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-full flex items-center transition">
-              <i class="fa-regular fa-calendar mr-1.5"></i><span id="txtToggleCal">Ocultar</span>
+            <button onclick="irAlCalendario()" class="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 md:py-1.5 rounded-full flex items-center transition">
+              <i class="fa-regular fa-calendar mr-1.5"></i> Ver calendario
             </button>
-          </div>
-        </div>
-
-        <!-- Calendario compacto (se puede ocultar) -->
-        <div id="bloqueCalendario" class="bg-white rounded-xl shadow-sm border border-slate-200 p-2 md:p-3 mb-4 w-full max-w-sm md:max-w-md mx-auto md:mx-0">
-          <div class="flex items-center justify-between mb-1.5">
-            <button onclick="cambiarMes(-1)" title="Mes anterior" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-left text-xs"></i></button>
-            <h3 id="tituloCalendario" class="text-sm md:text-base font-extrabold text-slate-900 font-serif text-center"></h3>
-            <button onclick="cambiarMes(1)" title="Mes siguiente" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-right text-xs"></i></button>
-          </div>
-          <div class="flex items-center justify-center gap-4 min-h-[16px] mb-1.5">
-            <button id="btnHoyCalendario" onclick="irAHoy()" class="hidden text-[11px] font-bold text-indigo-600 hover:underline">Ir a hoy</button>
-            <button id="btnVerTodoMes" onclick="seleccionarDia(null)" class="hidden text-[11px] font-bold text-indigo-600 hover:underline">Quitar filtro de día</button>
-          </div>
-          <div class="border border-slate-300 rounded-lg overflow-hidden">
-            <div class="grid grid-cols-7 bg-[#b91c2f] text-white text-[9px] md:text-[11px] font-semibold text-center">
-              <div class="py-1">Lun</div><div class="py-1">Mar</div><div class="py-1">Mié</div><div class="py-1">Jue</div><div class="py-1">Vie</div><div class="py-1">Sáb</div><div class="py-1">Dom</div>
-            </div>
-            <div id="gridCalendario" class="grid grid-cols-7 gap-px bg-slate-300"></div>
-          </div>
-          <div id="feriadosMes" class="mt-2"></div>
-          <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[10px] text-slate-500">
-            <span class="flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500 mr-1"></span> Pendiente</span>
-            <span class="flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1"></span> Realizada</span>
-            <span class="flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-red-500 mr-1"></span> No realizada</span>
-            <span class="flex items-center"><span class="w-2.5 h-2.5 rounded bg-red-100 border border-red-300 mr-1"></span> Feriado</span>
           </div>
         </div>
         
         <div class="flex overflow-x-auto space-x-2 mb-4 bg-white p-1.5 rounded-xl shadow-sm border border-slate-200 hide-scrollbar whitespace-nowrap">
-          <button class="tab-btn active px-4 md:px-5 py-2 rounded-lg font-medium text-sm transition" onclick="filtrarVista('hoy', this)">Hoy</button>
-          <button class="tab-btn px-4 md:px-5 py-2 rounded-lg font-medium text-sm transition hover:bg-slate-50" onclick="filtrarVista('semana', this)">Esta Semana</button>
-          <button class="tab-btn px-4 md:px-5 py-2 rounded-lg font-medium text-sm transition hover:bg-slate-50" onclick="filtrarVista('mes', this)">Este Mes</button>
-          <button class="tab-btn px-4 md:px-5 py-2 rounded-lg font-medium text-sm transition hover:bg-slate-50" onclick="filtrarVista('realizadas', this)">Realizadas</button>
-          <button class="tab-btn px-4 md:px-5 py-2 rounded-lg font-medium text-sm transition hover:bg-slate-50" onclick="filtrarVista('postergadas', this)">Postergadas</button>
+          <button class="tab-btn active px-4 md:px-5 py-2.5 md:py-2 rounded-lg font-medium text-sm transition" onclick="filtrarVista('hoy', this)">Hoy</button>
+          <button class="tab-btn px-4 md:px-5 py-2.5 md:py-2 rounded-lg font-medium text-sm transition hover:bg-slate-50" onclick="filtrarVista('semana', this)">Esta Semana</button>
+          <button class="tab-btn px-4 md:px-5 py-2.5 md:py-2 rounded-lg font-medium text-sm transition hover:bg-slate-50" onclick="filtrarVista('mes', this)">Este Mes</button>
+          <button class="tab-btn px-4 md:px-5 py-2.5 md:py-2 rounded-lg font-medium text-sm transition hover:bg-slate-50" onclick="filtrarVista('realizadas', this)">Realizadas</button>
+          <button class="tab-btn px-4 md:px-5 py-2.5 md:py-2 rounded-lg font-medium text-sm transition hover:bg-slate-50" onclick="filtrarVista('postergadas', this)">Postergadas</button>
         </div>
 
         <!-- Navegación por días -->
-        <div class="flex items-center justify-between bg-white rounded-xl shadow-sm border border-slate-200 p-2 mb-5">
-          <button onclick="moverDia(-1)" title="Día anterior" class="w-10 h-10 md:w-11 md:h-11 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition flex-shrink-0"><i class="fa-solid fa-chevron-left"></i></button>
+        <div id="anclaLista" class="flex items-center justify-between bg-white rounded-xl shadow-sm border border-slate-200 p-2 mb-5 scroll-mt-24">
+          <button onclick="moverDia(-1)" title="Día anterior" class="w-11 h-11 md:w-10 md:h-10 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition flex-shrink-0"><i class="fa-solid fa-chevron-left"></i></button>
           <div class="text-center px-2 min-w-0">
             <p id="navDiaTitulo" class="text-sm md:text-base font-extrabold text-slate-800"></p>
             <p id="navDiaFeriado" class="hidden text-xs md:text-sm font-bold text-red-600"></p>
             <button id="btnHoyDia" onclick="irAHoy()" class="hidden text-xs font-bold text-indigo-600 hover:underline mt-0.5">Volver a hoy</button>
           </div>
-          <button onclick="moverDia(1)" title="Día siguiente" class="w-10 h-10 md:w-11 md:h-11 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition flex-shrink-0"><i class="fa-solid fa-chevron-right"></i></button>
+          <button onclick="moverDia(1)" title="Día siguiente" class="w-11 h-11 md:w-10 md:h-10 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition flex-shrink-0"><i class="fa-solid fa-chevron-right"></i></button>
         </div>
 
         <p id="tituloRangoFechas" class="text-xs md:text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">MOSTRANDO ACTIVIDADES DE HOY</p>
         <div id="listaEventos" class="space-y-4"></div>
+
+        <!-- Calendario (abajo). Celular: ancho completo. PC: compacto -->
+        <div id="bloqueCalendario" class="mt-8 bg-white rounded-xl shadow-sm border border-slate-200 p-3 w-full md:max-w-md scroll-mt-24">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-sm font-bold text-slate-700 flex items-center"><i class="fa-regular fa-calendar mr-2 text-indigo-500"></i> Calendario</h4>
+            <button id="btnToggleCal" onclick="alternarCalendario()" class="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 md:py-1.5 rounded-full transition">
+              <span id="txtToggleCal">Ocultar</span>
+            </button>
+          </div>
+
+          <div id="cuerpoCalendario">
+            <div class="flex items-center justify-between mb-1.5">
+              <button onclick="cambiarMes(-1)" title="Mes anterior" class="w-10 h-10 md:w-8 md:h-8 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-left text-sm md:text-xs"></i></button>
+              <h3 id="tituloCalendario" class="text-lg md:text-base font-extrabold text-slate-900 font-serif text-center"></h3>
+              <button onclick="cambiarMes(1)" title="Mes siguiente" class="w-10 h-10 md:w-8 md:h-8 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-right text-sm md:text-xs"></i></button>
+            </div>
+            <div class="flex items-center justify-center gap-4 min-h-[18px] mb-1.5">
+              <button id="btnHoyCalendario" onclick="irAHoy()" class="hidden text-xs md:text-[11px] font-bold text-indigo-600 hover:underline">Ir a hoy</button>
+              <button id="btnVerTodoMes" onclick="seleccionarDia(null)" class="hidden text-xs md:text-[11px] font-bold text-indigo-600 hover:underline">Quitar filtro de día</button>
+            </div>
+            <div class="border border-slate-300 rounded-lg overflow-hidden">
+              <div class="grid grid-cols-7 bg-[#b91c2f] text-white text-xs md:text-[11px] font-semibold text-center">
+                <div class="py-1.5 md:py-1">Lun</div><div class="py-1.5 md:py-1">Mar</div><div class="py-1.5 md:py-1">Mié</div><div class="py-1.5 md:py-1">Jue</div><div class="py-1.5 md:py-1">Vie</div><div class="py-1.5 md:py-1">Sáb</div><div class="py-1.5 md:py-1">Dom</div>
+              </div>
+              <div id="gridCalendario" class="grid grid-cols-7 gap-px bg-slate-300"></div>
+            </div>
+            <div id="feriadosMes" class="mt-2"></div>
+            <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[11px] md:text-[10px] text-slate-500">
+              <span class="flex items-center"><span class="w-2 h-2 md:w-1.5 md:h-1.5 rounded-full bg-indigo-500 mr-1"></span> Pendiente</span>
+              <span class="flex items-center"><span class="w-2 h-2 md:w-1.5 md:h-1.5 rounded-full bg-emerald-500 mr-1"></span> Realizada</span>
+              <span class="flex items-center"><span class="w-2 h-2 md:w-1.5 md:h-1.5 rounded-full bg-red-500 mr-1"></span> No realizada</span>
+              <span class="flex items-center"><span class="w-2.5 h-2.5 rounded bg-red-100 border border-red-300 mr-1"></span> Feriado</span>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- SECCIÓN: FORMULARIO -->
@@ -250,38 +268,53 @@
     </div>
   </main>
 
-  <!-- Modal Eliminar -->
-  <div id="modalEliminar" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[60] flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl transform transition-all scale-95 opacity-0" id="modalBox">
+  <!-- Modal Eliminar (celular: sube desde abajo; PC: centrado) -->
+  <div id="modalEliminar" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[60] flex items-end md:items-center justify-center p-0 md:p-4">
+    <div class="bg-white rounded-t-3xl md:rounded-2xl p-6 md:p-8 pb-8 w-full md:max-w-sm shadow-2xl transform transition-all scale-95 opacity-0" id="modalBox">
       <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4"><i class="fa-solid fa-trash-can"></i></div>
       <h3 class="text-xl font-bold text-center text-slate-800 mb-2">¿Eliminar actividad?</h3>
       <p class="text-center text-slate-500 mb-6 text-sm">Esta acción borrará el evento de tu calendario de Google.</p>
       <div class="flex space-x-3">
-        <button onclick="cerrarModalEliminar()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition">Cancelar</button>
-        <button onclick="ejecutarEliminar()" id="btnConfirmarEliminar" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl shadow-md transition">Eliminar</button>
+        <button onclick="cerrarModalEliminar()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 md:py-2.5 rounded-xl transition">Cancelar</button>
+        <button onclick="ejecutarEliminar()" id="btnConfirmarEliminar" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 md:py-2.5 rounded-xl shadow-md transition">Eliminar</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal No Realizada / Reprogramación -->
-  <div id="modalNoRealizada" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[60] flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl max-h-[90vh] overflow-y-auto">
-      <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4"><i class="fa-solid fa-calendar-xmark"></i></div>
-      <h3 class="text-xl font-bold text-center text-slate-800 mb-2">Reunión no realizada</h3>
-      <p class="text-center text-slate-500 mb-5 text-sm">Indique brevemente el motivo. Si lo desea, indique también la nueva fecha y hora en que se reprogramará.</p>
+  <!-- Modal Estado de la reunión -->
+  <div id="modalEstado" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[60] flex items-end md:items-center justify-center p-0 md:p-4">
+    <div class="bg-white rounded-t-3xl md:rounded-2xl p-5 md:p-8 pb-8 w-full md:max-w-sm shadow-2xl max-h-[92vh] overflow-y-auto">
+      <h3 class="text-lg md:text-xl font-bold text-center text-slate-800 mb-1">Estado de la reunión</h3>
+      <p id="estadoTituloEvento" class="text-center text-slate-500 text-sm mb-4 break-words"></p>
 
-      <label class="block text-sm font-bold text-slate-700 mb-2">Motivo (breve)</label>
-      <input type="text" id="motivoNoRealizada" maxlength="120" placeholder="Ej. El apoderado no pudo asistir" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
-      <p class="text-xs text-slate-400 mt-1 mb-4">Máximo 120 caracteres.</p>
+      <div class="grid grid-cols-3 gap-2 mb-4">
+        <button type="button" id="optEstado-pendiente" onclick="elegirEstado('pendiente')" class="flex flex-col items-center justify-center gap-1 py-3 md:py-2.5 px-1 rounded-xl border-2 text-xs md:text-sm font-bold transition border-slate-200 bg-white text-slate-500">
+          <i class="fa-regular fa-clock text-base"></i><span>Pendiente</span>
+        </button>
+        <button type="button" id="optEstado-realizada" onclick="elegirEstado('realizada')" class="flex flex-col items-center justify-center gap-1 py-3 md:py-2.5 px-1 rounded-xl border-2 text-xs md:text-sm font-bold transition border-slate-200 bg-white text-slate-500">
+          <i class="fa-solid fa-circle-check text-base"></i><span>Realizada</span>
+        </button>
+        <button type="button" id="optEstado-no_realizada" onclick="elegirEstado('no_realizada')" class="flex flex-col items-center justify-center gap-1 py-3 md:py-2.5 px-1 rounded-xl border-2 text-xs md:text-sm font-bold transition border-slate-200 bg-white text-slate-500">
+          <i class="fa-solid fa-circle-xmark text-base"></i><span>No realizada</span>
+        </button>
+      </div>
 
-      <label class="block text-sm font-bold text-slate-700 mb-2">Nueva fecha (opcional)</label>
-      <input type="date" id="fechaReprogramacion" onchange="mostrarDiaSemanaRepro()" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm mb-1">
-      <p id="diaSemanaRepro" class="text-xs font-bold text-indigo-600 mb-4 min-h-[16px]"></p>
-      <label class="block text-sm font-bold text-slate-700 mb-2">Nueva hora (opcional)</label>
-      <input type="time" id="horaReprogramacion" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm mb-6">
-      <div class="flex space-x-3">
-        <button onclick="cerrarModalNoRealizada()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition">Cancelar</button>
-        <button onclick="confirmarNoRealizada()" id="btnConfirmarNoRealizada" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl shadow-md transition">Guardar</button>
+      <!-- Campos que aparecen solo si la reunión no se realizó -->
+      <div id="camposNoRealizada" class="hidden">
+        <label class="block text-sm font-bold text-slate-700 mb-2">Motivo (breve)</label>
+        <input type="text" id="motivoNoRealizada" maxlength="120" placeholder="Ej. El apoderado no pudo asistir" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
+        <p class="text-xs text-slate-400 mt-1 mb-4">Máximo 120 caracteres.</p>
+
+        <label class="block text-sm font-bold text-slate-700 mb-2">Nueva fecha (opcional)</label>
+        <input type="date" id="fechaReprogramacion" onchange="mostrarDiaSemanaRepro()" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm mb-1">
+        <p id="diaSemanaRepro" class="text-xs font-bold text-indigo-600 mb-4 min-h-[16px]"></p>
+        <label class="block text-sm font-bold text-slate-700 mb-2">Nueva hora (opcional)</label>
+        <input type="time" id="horaReprogramacion" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm mb-4">
+      </div>
+
+      <div class="flex space-x-3 mt-2">
+        <button onclick="cerrarModalEstado()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 md:py-2.5 rounded-xl transition">Cancelar</button>
+        <button onclick="confirmarEstado()" id="btnConfirmarEstado" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 md:py-2.5 rounded-xl shadow-md transition">Guardar</button>
       </div>
     </div>
   </div>
@@ -296,7 +329,8 @@
     let mesVisible = { anio: new Date().getFullYear(), mes: new Date().getMonth() };
     const DIAS_CORTOS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
     let eventoAEliminar = null;
-    let eventoNoRealizadaId = null;
+    let eventoEstadoId = null;
+    let estadoElegido = 'pendiente';
 
     const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
@@ -443,16 +477,23 @@
       aplicarFiltro(vistaActual);
     }
 
-    // Muestra u oculta el calendario (y recuerda la elección)
+    // Muestra u oculta el cuerpo del calendario (y recuerda la elección)
     function aplicarEstadoCalendario(abierto) {
-      document.getElementById('bloqueCalendario').classList.toggle('hidden', !abierto);
+      document.getElementById('cuerpoCalendario').classList.toggle('hidden', !abierto);
       document.getElementById('txtToggleCal').innerText = abierto ? 'Ocultar' : 'Mostrar';
     }
 
     function alternarCalendario() {
-      const abrir = document.getElementById('bloqueCalendario').classList.contains('hidden');
+      const abrir = document.getElementById('cuerpoCalendario').classList.contains('hidden');
       aplicarEstadoCalendario(abrir);
       try { localStorage.setItem('coordinacion_cal_abierto', abrir ? '1' : '0'); } catch (e) {}
+    }
+
+    // Baja hasta el calendario (lo abre si estaba oculto)
+    function irAlCalendario() {
+      aplicarEstadoCalendario(true);
+      try { localStorage.setItem('coordinacion_cal_abierto', '1'); } catch (e) {}
+      document.getElementById('bloqueCalendario').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     // Marcas guardadas dentro de la descripción del evento
@@ -777,13 +818,17 @@
       renderizarCalendario();
     }
 
-    // Tocar un día del calendario filtra la lista; tocarlo de nuevo quita el filtro
+    // Tocar un día del calendario filtra la lista y sube hasta ella; tocarlo de nuevo quita el filtro
     function seleccionarDia(clave) {
       diaSeleccionado = (clave && clave !== diaSeleccionado) ? clave : null;
       aplicarFiltro(vistaActual);
+      if (diaSeleccionado) {
+        document.getElementById('anclaLista').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
 
-    // Calendario mensual compacto (los días de otros meses quedan en blanco)
+    // Calendario mensual (los días de otros meses quedan en blanco)
+    // Celular: casillas más altas y fáciles de tocar. PC: compacto.
     function renderizarCalendario() {
       const hoy = new Date();
       const hoyClave = claveDia(hoy);
@@ -813,7 +858,7 @@
         const d = i - primerDia + 1;
 
         if (d < 1 || d > diasEnMes) {
-          html += '<div class="bg-slate-100 min-h-[34px] md:min-h-[44px]"></div>';
+          html += '<div class="bg-slate-100 min-h-[46px] md:min-h-[44px]"></div>';
           continue;
         }
 
@@ -828,9 +873,9 @@
 
         let puntos = '';
         if (info) {
-          if (info.pendiente) puntos += '<span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>';
-          if (info.realizada) puntos += '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>';
-          if (info.no_realizada) puntos += '<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>';
+          if (info.pendiente) puntos += '<span class="w-2 h-2 md:w-1.5 md:h-1.5 rounded-full bg-indigo-500"></span>';
+          if (info.realizada) puntos += '<span class="w-2 h-2 md:w-1.5 md:h-1.5 rounded-full bg-emerald-500"></span>';
+          if (info.no_realizada) puntos += '<span class="w-2 h-2 md:w-1.5 md:h-1.5 rounded-full bg-red-500"></span>';
         }
 
         const fondo = esSel
@@ -841,9 +886,9 @@
           : ((finDeSemana || nombreFeriado) ? 'text-red-600 font-medium' : 'text-slate-800 font-medium');
 
         html += `
-          <button onclick="seleccionarDia('${k}')" title="${nombreFeriado ? 'Feriado: ' + nombreFeriado : ''}" class="min-h-[34px] md:min-h-[44px] p-0.5 md:p-1 flex flex-col items-center md:items-start justify-start transition ${fondo}">
+          <button onclick="seleccionarDia('${k}')" title="${nombreFeriado ? 'Feriado: ' + nombreFeriado : ''}" class="min-h-[46px] md:min-h-[44px] p-1 flex flex-col items-center md:items-start justify-start transition ${fondo}">
             <span class="flex items-baseline gap-0.5">
-              <span class="text-xs md:text-sm ${colorNumero}">${d}</span>
+              <span class="text-base md:text-sm ${colorNumero}">${d}</span>
               <span class="hidden md:inline text-[8px] uppercase font-bold ${esHoy ? 'text-indigo-600' : 'text-slate-400'}">${DIAS_CORTOS[fecha.getDay()]}</span>
             </span>
             <span class="flex gap-0.5 mt-0.5">${puntos}</span>
@@ -858,9 +903,9 @@
         contFer.innerHTML = '';
       } else {
         contFer.innerHTML =
-          '<p class="text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-0.5">Feriados del mes</p>' +
+          '<p class="text-[11px] md:text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-0.5">Feriados del mes</p>' +
           feriadosMes.map(f =>
-            `<button onclick="seleccionarDia('${f.k}')" class="block w-full text-left text-[11px] md:text-xs text-red-700 hover:underline"><span class="font-bold">${capitalizar(DIAS_CORTOS[f.dow])} ${f.d}</span> · ${f.nombre}</button>`
+            `<button onclick="seleccionarDia('${f.k}')" class="block w-full text-left text-[13px] md:text-xs text-red-700 hover:underline py-0.5"><span class="font-bold">${capitalizar(DIAS_CORTOS[f.dow])} ${f.d}</span> · ${f.nombre}</button>`
           ).join('');
       }
     }
@@ -893,25 +938,34 @@
         // Aviso si la actividad cae en feriado
         const feriadoTxt = feriadoDe(fechaObj);
         const badgeFeriado = feriadoTxt
-          ? `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-xs font-bold bg-red-50 text-red-700 border border-red-200"><i class="fa-solid fa-flag mr-1.5"></i> Feriado: ${feriadoTxt}</span>`
+          ? `<span class="inline-flex items-center px-2 py-1 md:py-0.5 rounded text-[11px] md:text-xs font-bold bg-red-50 text-red-700 border border-red-200"><i class="fa-solid fa-flag mr-1.5"></i> Feriado: ${feriadoTxt}</span>`
           : '';
 
-        // Estado de la reunión y descripción completa (sin las marcas internas)
+        // Estado: siempre visible y se puede tocar para cambiarlo
         const info = leerEstado(ev.descripcion);
-        let badgeEstado = '';
+        let colores, icono, etiqueta;
         if (info.estado === 'realizada') {
-          badgeEstado = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200"><i class="fa-solid fa-circle-check mr-1.5"></i> Realizada</span>`;
+          colores = 'bg-emerald-100 text-emerald-700 border-emerald-200';
+          icono = 'fa-circle-check';
+          etiqueta = 'Realizada';
         } else if (info.estado === 'no_realizada') {
-          badgeEstado = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-xs font-bold bg-red-100 text-red-700 border border-red-200"><i class="fa-solid fa-circle-xmark mr-1.5"></i> No realizada${info.reprogramacion ? ' · Reprogramada para el ' + formatearReprogramacion(info.reprogramacion, info.reprogramacionHora) : ''}</span>`;
+          colores = 'bg-red-100 text-red-700 border-red-200';
+          icono = 'fa-circle-xmark';
+          etiqueta = 'No realizada' + (info.reprogramacion ? ' · Reprogramada para el ' + formatearReprogramacion(info.reprogramacion, info.reprogramacionHora) : '');
+        } else if (fechaFinObj < new Date()) {
+          colores = 'bg-amber-100 text-amber-700 border-amber-200';
+          icono = 'fa-hourglass-half';
+          etiqueta = 'Por registrar';
+        } else {
+          colores = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+          icono = 'fa-clock';
+          etiqueta = 'Pendiente';
         }
+        const badgeEstado = `<button onclick="abrirModalEstado('${ev.id}')" title="Cambiar estado" class="inline-flex items-center px-2 py-1 md:py-0.5 rounded text-[11px] md:text-xs font-bold border text-left ${colores}"><i class="fa-solid ${icono} mr-1.5"></i> ${etiqueta} <i class="fa-solid fa-pen text-[9px] ml-1.5 opacity-60"></i></button>`;
 
-        // Reunión pendiente cuya hora ya pasó: recordatorio para registrarla
-        if (info.estado === 'pendiente' && fechaFinObj < new Date()) {
-          badgeEstado = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200"><i class="fa-solid fa-hourglass-half mr-1.5"></i> Por registrar</span>`;
-        }
-
-        const botonPendiente = info.estado !== 'pendiente'
-          ? `<button onclick="marcarPendiente('${ev.id}')" title="Quitar estado" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-50 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-rotate-left text-xs md:text-sm"></i></button>`
+        // Botón ✓ rápido solo si aún no está realizada
+        const botonRealizada = info.estado !== 'realizada'
+          ? `<button onclick="marcarRealizada('${ev.id}')" title="Marcar como realizada" class="w-10 h-10 md:w-9 md:h-9 rounded-full bg-slate-50 hover:bg-emerald-100 text-slate-500 hover:text-emerald-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-check text-sm"></i></button>`
           : '';
 
         return `
@@ -920,35 +974,34 @@
             
             <div class="flex items-start space-x-4 md:space-x-5 pl-2 md:pl-3 w-full">
               <div class="flex flex-col items-center justify-center ${estilo.bg} ${estilo.text} w-14 h-14 md:w-16 md:h-16 rounded-xl border ${estilo.border} flex-shrink-0 shadow-inner">
-                <span class="text-[9px] md:text-[10px] font-bold uppercase tracking-wider">${mesStr}</span>
-                <span class="text-lg md:text-xl font-extrabold leading-none mt-0.5">${dia}</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider">${mesStr}</span>
+                <span class="text-xl font-extrabold leading-none mt-0.5">${dia}</span>
               </div>
               <div class="flex-1 min-w-0 pr-2">
                 <div class="flex flex-wrap items-center gap-2 mb-1">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-xs font-bold ${estilo.bg} ${estilo.text} border ${estilo.border}">
+                  <span class="inline-flex items-center px-2 py-1 md:py-0.5 rounded text-[11px] md:text-xs font-bold ${estilo.bg} ${estilo.text} border ${estilo.border}">
                     <i class="fa-solid ${estilo.icon} mr-1.5"></i> ${ev.tipo || 'Otras'}
                   </span>
                   ${badgeEstado}
                   ${badgeFeriado}
                 </div>
-                <h4 class="text-base md:text-lg font-bold text-slate-800 leading-tight break-words">${ev.titulo}</h4>
-                <div class="text-xs md:text-sm text-slate-500 mt-1">
+                <h4 class="text-base md:text-lg font-bold text-slate-800 leading-tight break-words">${escaparHtml(ev.titulo)}</h4>
+                <div class="text-sm text-slate-500 mt-1">
                   <span class="flex items-center font-bold text-slate-700"><i class="fa-regular fa-calendar text-slate-400 mr-1.5"></i> ${textoDia}</span>
                   <span class="flex items-center font-medium mt-0.5"><i class="fa-regular fa-clock text-slate-400 mr-1.5"></i> ${horaInicioStr} - ${horaFinStr}</span>
                   ${info.telefono ? `<span class="flex items-center font-medium mt-0.5"><i class="fa-solid fa-phone text-slate-400 mr-1.5"></i> +${info.telefono}</span>` : ''}
-                  ${info.estado === 'no_realizada' && info.motivo ? `<p class="mt-1.5 text-xs md:text-sm text-red-700 break-words"><span class="font-bold">Motivo:</span> ${escaparHtml(info.motivo)}</p>` : ''}
-                  ${info.descripcionLimpia ? `<p class="mt-2 text-xs md:text-sm text-slate-600 whitespace-pre-line break-words">${info.descripcionLimpia}</p>` : ''}
+                  ${info.estado === 'no_realizada' && info.motivo ? `<p class="mt-1.5 text-sm text-red-700 break-words"><span class="font-bold">Motivo:</span> ${escaparHtml(info.motivo)}</p>` : ''}
+                  ${info.descripcionLimpia ? `<p class="mt-2 text-sm text-slate-600 whitespace-pre-line break-words">${escaparHtml(info.descripcionLimpia)}</p>` : ''}
                 </div>
               </div>
             </div>
             
-            <div class="flex items-center justify-end space-x-2 mt-4 md:mt-0 pt-3 md:pt-0 border-t border-slate-100 md:border-none md:opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white md:pl-4">
-              <button onclick="enviarWhatsApp('${ev.id}')" title="Enviar por WhatsApp" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-50 hover:bg-green-100 text-slate-500 hover:text-green-600 flex items-center justify-center transition shadow-sm"><i class="fa-brands fa-whatsapp text-sm md:text-base"></i></button>
-              <button onclick="marcarRealizada('${ev.id}')" title="Marcar como realizada" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-50 hover:bg-emerald-100 text-slate-500 hover:text-emerald-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-check text-xs md:text-sm"></i></button>
-              <button onclick="abrirModalNoRealizada('${ev.id}')" title="Marcar como no realizada" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-50 hover:bg-red-100 text-slate-500 hover:text-red-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-xmark text-xs md:text-sm"></i></button>
-              ${botonPendiente}
-              <button onclick="prepararEdicion('${ev.id}')" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-50 hover:bg-amber-100 text-slate-500 hover:text-amber-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-pen text-xs md:text-sm"></i></button>
-              <button onclick="abrirModalEliminar('${ev.id}')" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-50 hover:bg-red-100 text-slate-500 hover:text-red-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-trash text-xs md:text-sm"></i></button>
+            <div class="acciones-card flex items-center justify-end space-x-2 mt-4 md:mt-0 pt-3 md:pt-0 border-t border-slate-100 md:border-none md:opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white md:pl-4">
+              <button onclick="enviarWhatsApp('${ev.id}')" title="Enviar por WhatsApp" class="w-10 h-10 md:w-9 md:h-9 rounded-full bg-slate-50 hover:bg-green-100 text-slate-500 hover:text-green-600 flex items-center justify-center transition shadow-sm"><i class="fa-brands fa-whatsapp text-base"></i></button>
+              ${botonRealizada}
+              <button onclick="abrirModalEstado('${ev.id}')" title="Cambiar estado" class="w-10 h-10 md:w-9 md:h-9 rounded-full bg-slate-50 hover:bg-indigo-100 text-slate-500 hover:text-indigo-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-clipboard-check text-sm"></i></button>
+              <button onclick="prepararEdicion('${ev.id}')" title="Editar actividad" class="w-10 h-10 md:w-9 md:h-9 rounded-full bg-slate-50 hover:bg-amber-100 text-slate-500 hover:text-amber-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-pen text-sm"></i></button>
+              <button onclick="abrirModalEliminar('${ev.id}')" title="Eliminar actividad" class="w-10 h-10 md:w-9 md:h-9 rounded-full bg-slate-50 hover:bg-red-100 text-slate-500 hover:text-red-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-trash text-sm"></i></button>
             </div>
           </div>
         `;
@@ -1074,51 +1127,74 @@
       return false;
     }
 
+    // Botón ✓ rápido
     function marcarRealizada(id) {
       guardarEstado(id, 'realizada', '');
     }
 
-    function marcarPendiente(id) {
-      guardarEstado(id, 'pendiente', '');
+    // ---------- Ventana "Estado de la reunión" ----------
+    const CLASES_ESTADO_BASE = 'flex flex-col items-center justify-center gap-1 py-3 md:py-2.5 px-1 rounded-xl border-2 text-xs md:text-sm font-bold transition ';
+    const CLASES_ESTADO_ACTIVO = {
+      pendiente: 'border-indigo-500 bg-indigo-50 text-indigo-700',
+      realizada: 'border-emerald-500 bg-emerald-50 text-emerald-700',
+      no_realizada: 'border-red-500 bg-red-50 text-red-700'
+    };
+    const CLASES_ESTADO_INACTIVO = 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50';
+
+    function elegirEstado(estado) {
+      estadoElegido = estado;
+      ['pendiente', 'realizada', 'no_realizada'].forEach(e => {
+        const b = document.getElementById('optEstado-' + e);
+        b.className = CLASES_ESTADO_BASE + (e === estado ? CLASES_ESTADO_ACTIVO[e] : CLASES_ESTADO_INACTIVO);
+      });
+      document.getElementById('camposNoRealizada').classList.toggle('hidden', estado !== 'no_realizada');
     }
 
-    function abrirModalNoRealizada(id) {
-      eventoNoRealizadaId = id;
+    function abrirModalEstado(id) {
       const ev = todosLosEventos.find(e => e.id === id);
-      const info = ev ? leerEstado(ev.descripcion) : { reprogramacion: '', reprogramacionHora: '', motivo: '' };
+      if (!ev) return;
+      eventoEstadoId = id;
+
+      const info = leerEstado(ev.descripcion);
+      document.getElementById('estadoTituloEvento').innerText = ev.titulo;
       document.getElementById('motivoNoRealizada').value = info.motivo || '';
       document.getElementById('fechaReprogramacion').value = info.reprogramacion || '';
       document.getElementById('horaReprogramacion').value = info.reprogramacionHora || '';
       mostrarDiaSemanaRepro();
-      document.getElementById('modalNoRealizada').classList.remove('hidden');
+      elegirEstado(info.estado);
+
+      document.getElementById('modalEstado').classList.remove('hidden');
     }
 
-    function cerrarModalNoRealizada() {
-      eventoNoRealizadaId = null;
-      document.getElementById('modalNoRealizada').classList.add('hidden');
+    function cerrarModalEstado() {
+      eventoEstadoId = null;
+      document.getElementById('modalEstado').classList.add('hidden');
     }
 
-    async function confirmarNoRealizada() {
-      if (!eventoNoRealizadaId) return;
+    async function confirmarEstado() {
+      if (!eventoEstadoId) return;
 
-      const motivo = document.getElementById('motivoNoRealizada').value.trim();
-      const fecha = document.getElementById('fechaReprogramacion').value;
-      const hora = document.getElementById('horaReprogramacion').value;
+      let fecha = '', hora = '', motivo = '';
+      if (estadoElegido === 'no_realizada') {
+        motivo = document.getElementById('motivoNoRealizada').value.trim();
+        fecha = document.getElementById('fechaReprogramacion').value;
+        hora = document.getElementById('horaReprogramacion').value;
 
-      if (hora && !fecha) {
-        alert('Indicó una hora, pero falta la nueva fecha. Complete la fecha o borre la hora.');
-        return;
+        if (hora && !fecha) {
+          alert('Indicó una hora, pero falta la nueva fecha. Complete la fecha o borre la hora.');
+          return;
+        }
       }
 
-      const btn = document.getElementById('btnConfirmarNoRealizada');
+      const btn = document.getElementById('btnConfirmarEstado');
       btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
       btn.disabled = true;
 
-      await guardarEstado(eventoNoRealizadaId, 'no_realizada', fecha, hora, motivo);
+      await guardarEstado(eventoEstadoId, estadoElegido, fecha, hora, motivo);
 
       btn.innerHTML = 'Guardar';
       btn.disabled = false;
-      cerrarModalNoRealizada();
+      cerrarModalEstado();
     }
 
     // Abre WhatsApp con el mensaje de la actividad ya escrito
