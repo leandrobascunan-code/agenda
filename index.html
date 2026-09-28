@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -195,7 +196,22 @@
       <p class="text-center text-slate-500 mb-6 text-sm">Esta acción borrará el evento de tu calendario de Google.</p>
       <div class="flex space-x-3">
         <button onclick="cerrarModalEliminar()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition">Cancelar</button>
-        <button onclick="ejecutarEliminar()" id="btnConfirmarEliminar" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl shadow-md transition">Eliminar</button>
+                <button onclick="ejecutarEliminar()" id="btnConfirmarEliminar" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl shadow-md transition">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal No Realizada / Reprogramación -->
+  <div id="modalNoRealizada" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[60] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl">
+      <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4"><i class="fa-solid fa-calendar-xmark"></i></div>
+      <h3 class="text-xl font-bold text-center text-slate-800 mb-2">Reunión no realizada</h3>
+      <p class="text-center text-slate-500 mb-5 text-sm">Si lo desea, indique la fecha en que se reprogramará. Puede dejarla en blanco.</p>
+      <label class="block text-sm font-bold text-slate-700 mb-2">Fecha de reprogramación (opcional)</label>
+      <input type="date" id="fechaReprogramacion" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm mb-6">
+      <div class="flex space-x-3">
+        <button onclick="cerrarModalNoRealizada()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition">Cancelar</button>
+        <button onclick="confirmarNoRealizada()" id="btnConfirmarNoRealizada" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl shadow-md transition">Guardar</button>
       </div>
     </div>
   </div>
@@ -204,9 +220,38 @@
     // TU API URL DE GOOGLE APPS SCRIPT
     const API_URL = "https://script.google.com/macros/s/AKfycbyLuqLPomnA45W7MDiCFlWE1uXqnqOVAQGM93dcjeKwl_zjWdYd61J1Cv5pxj_0liQFZg/exec"; 
 
-    let todosLosEventos = [];
+        let todosLosEventos = [];
     let vistaActual = 'hoy';
     let eventoAEliminar = null;
+    let eventoNoRealizadaId = null;
+
+    // Marca de estado guardada dentro de la descripción del evento
+    const MARCA_ESTADO = /\[\[ESTADO:(realizada|no_realizada)(?:\|REPROG:(\d{4}-\d{2}-\d{2}))?\]\]/;
+
+    function leerEstado(descripcion) {
+      const texto = descripcion || '';
+      const m = texto.match(MARCA_ESTADO);
+      return {
+        estado: m ? m[1] : 'pendiente',
+        reprogramacion: m && m[2] ? m[2] : '',
+        descripcionLimpia: texto.replace(MARCA_ESTADO, '').trim()
+      };
+    }
+
+    function armarDescripcion(descripcionLimpia, estado, reprogramacion) {
+      let marca = '';
+      if (estado === 'realizada') {
+        marca = '[[ESTADO:realizada]]';
+      } else if (estado === 'no_realizada') {
+        marca = '[[ESTADO:no_realizada' + (reprogramacion ? '|REPROG:' + reprogramacion : '') + ']]';
+      }
+      return (descripcionLimpia ? descripcionLimpia + '\n' : '') + marca;
+    }
+
+    function formatearFechaISO(iso) {
+      const [a, m, d] = iso.split('-');
+      return d + '-' + m + '-' + a;
+    }
 
     const estiloTipos = {
       'Entrevista apoderado': { bg: 'bg-purple-100', text: 'text-purple-700', border: 'border-purple-200', gradient: 'from-purple-500 to-fuchsia-500', icon: 'fa-user-tie' },
@@ -270,14 +315,22 @@
       
       document.getElementById('errorFormulario').classList.add('hidden');
 
-      const id = document.getElementById('eventoId').value;
+            const id = document.getElementById('eventoId').value;
+      const eventoExistente = id ? todosLosEventos.find(e => e.id === id) : null;
+      const estadoPrevio = eventoExistente
+        ? leerEstado(eventoExistente.descripcion)
+        : { estado: 'pendiente', reprogramacion: '' };
       const datos = {
         tipo: document.getElementById('tipoActividad').value,
         titulo: document.getElementById('titulo').value,
         fecha: document.getElementById('fecha').value,
         hora: document.getElementById('hora').value,
         duracion: document.getElementById('duracion').value,
-        descripcion: document.getElementById('descripcion').value
+        descripcion: armarDescripcion(
+          document.getElementById('descripcion').value.trim(),
+          estadoPrevio.estado,
+          estadoPrevio.reprogramacion
+        )
       };
 
       const payload = {
@@ -377,7 +430,7 @@
       renderizarLista(eventosFiltrados);
     }
 
-    function renderizarLista(eventos) {
+        function renderizarLista(eventos) {
       const contenedor = document.getElementById('listaEventos');
       if (eventos.length === 0) {
         contenedor.innerHTML = `
@@ -401,30 +454,48 @@
         
         const estilo = estiloTipos[ev.tipo] || estiloTipos['Otras'];
 
+        // Estado de la reunión y descripción completa (sin la marca interna)
+        const info = leerEstado(ev.descripcion);
+        let badgeEstado = '';
+        if (info.estado === 'realizada') {
+          badgeEstado = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200"><i class="fa-solid fa-circle-check mr-1.5"></i> Realizada</span>`;
+        } else if (info.estado === 'no_realizada') {
+          badgeEstado = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-xs font-bold bg-red-100 text-red-700 border border-red-200"><i class="fa-solid fa-circle-xmark mr-1.5"></i> No realizada${info.reprogramacion ? ' · Reprogramada para el ' + formatearFechaISO(info.reprogramacion) : ''}</span>`;
+        }
+
+        const botonPendiente = info.estado !== 'pendiente'
+          ? `<button onclick="marcarPendiente('${ev.id}')" title="Quitar estado" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-50 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-rotate-left text-xs md:text-sm"></i></button>`
+          : '';
+
         return `
           <div class="group relative flex flex-col md:flex-row md:items-center justify-between p-4 md:p-5 bg-white rounded-2xl border border-slate-200 hover:border-indigo-300 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 mb-3 md:mb-0">
             <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b ${estilo.gradient} rounded-l-2xl"></div>
             
-            <div class="flex items-center space-x-4 md:space-x-5 pl-2 md:pl-3 w-full">
+            <div class="flex items-start space-x-4 md:space-x-5 pl-2 md:pl-3 w-full">
               <div class="flex flex-col items-center justify-center ${estilo.bg} ${estilo.text} w-14 h-14 md:w-16 md:h-16 rounded-xl border ${estilo.border} flex-shrink-0 shadow-inner">
                 <span class="text-[9px] md:text-[10px] font-bold uppercase tracking-wider">${mesStr}</span>
                 <span class="text-lg md:text-xl font-extrabold leading-none mt-0.5">${dia}</span>
               </div>
               <div class="flex-1 min-w-0 pr-2">
-                <div class="flex items-center space-x-2 mb-1">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-xs font-bold ${estilo.bg} ${estilo.text} border ${estilo.border} truncate">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-xs font-bold ${estilo.bg} ${estilo.text} border ${estilo.border}">
                     <i class="fa-solid ${estilo.icon} mr-1.5"></i> ${ev.tipo || 'Otras'}
                   </span>
+                  ${badgeEstado}
                 </div>
-                <h4 class="text-base md:text-lg font-bold text-slate-800 leading-tight md:truncate">${ev.titulo}</h4>
-                <div class="flex flex-col md:flex-row md:items-center text-xs md:text-sm text-slate-500 mt-1 md:space-x-4">
-                  <span class="flex items-center font-medium mb-1 md:mb-0"><i class="fa-regular fa-clock text-slate-400 mr-1.5"></i> ${horaInicioStr} - ${horaFinStr}</span>
-                  ${ev.descripcion ? `<span class="truncate md:max-w-[200px] border-none md:border-solid md:border-l border-slate-300 md:pl-4 mt-1 md:mt-0 text-xs italic md:not-italic">${ev.descripcion}</span>` : ''}
+                <h4 class="text-base md:text-lg font-bold text-slate-800 leading-tight break-words">${ev.titulo}</h4>
+                <div class="text-xs md:text-sm text-slate-500 mt-1">
+                  <span class="flex items-center font-medium"><i class="fa-regular fa-clock text-slate-400 mr-1.5"></i> ${horaInicioStr} - ${horaFinStr}</span>
+                  ${info.descripcionLimpia ? `<p class="mt-2 text-xs md:text-sm text-slate-600 whitespace-pre-line break-words">${info.descripcionLimpia}</p>` : ''}
                 </div>
               </div>
             </div>
             
             <div class="flex items-center justify-end space-x-2 mt-4 md:mt-0 pt-3 md:pt-0 border-t border-slate-100 md:border-none md:opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white md:pl-4">
+              <button onclick="enviarWhatsApp('${ev.id}')" title="Enviar por WhatsApp" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-50 hover:bg-green-100 text-slate-500 hover:text-green-600 flex items-center justify-center transition shadow-sm"><i class="fa-brands fa-whatsapp text-sm md:text-base"></i></button>
+              <button onclick="marcarRealizada('${ev.id}')" title="Marcar como realizada" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-50 hover:bg-emerald-100 text-slate-500 hover:text-emerald-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-check text-xs md:text-sm"></i></button>
+              <button onclick="abrirModalNoRealizada('${ev.id}')" title="Marcar como no realizada" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-50 hover:bg-red-100 text-slate-500 hover:text-red-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-xmark text-xs md:text-sm"></i></button>
+              ${botonPendiente}
               <button onclick="prepararEdicion('${ev.id}')" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-50 hover:bg-amber-100 text-slate-500 hover:text-amber-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-pen text-xs md:text-sm"></i></button>
               <button onclick="abrirModalEliminar('${ev.id}')" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-50 hover:bg-red-100 text-slate-500 hover:text-red-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-trash text-xs md:text-sm"></i></button>
             </div>
@@ -457,8 +528,8 @@
       const hora = String(fechaInicio.getHours()).padStart(2, '0');
       const minutos = String(fechaInicio.getMinutes()).padStart(2, '0');
 
-      const soloFecha = `${anio}-${mes}-${dia}`;
-      const soloHora = `${hora}:${minutos}`;
+      const soloFecha = `anio-{mes}-${dia}`;
+      const soloHora = `hora:{minutos}`;
 
       document.getElementById('eventoId').value = ev.id;
       
@@ -470,7 +541,7 @@
       document.getElementById('fecha').value = soloFecha;
       document.getElementById('hora').value = soloHora;
       document.getElementById('duracion').value = duracionMinutos;
-      document.getElementById('descripcion').value = ev.descripcion || '';
+      document.getElementById('descripcion').value = leerEstado(ev.descripcion).descripcionLimpia;
       
       document.getElementById('tituloFormulario').innerText = 'Editar Actividad';
       document.getElementById('btnGuardar').innerText = 'Actualizar Actividad';
@@ -511,6 +582,107 @@
       setTimeout(() => modal.classList.add('hidden'), 200);
     }
 
+       // Guarda el estado reutilizando la acción 'actualizar' que ya existe en su Apps Script
+    async function guardarEstado(id, estado, reprogramacion) {
+      const ev = todosLosEventos.find(e => e.id === id);
+      if (!ev) return false;
+
+      const fi = new Date(ev.fechaInicio);
+      const ff = new Date(ev.fechaFin);
+      const pad = n => String(n).padStart(2, '0');
+
+      const datos = {
+        tipo: ev.tipo || 'Otras',
+        titulo: ev.titulo,
+        fecha: `fi.getFullYear()-{pad(fi.getMonth() + 1)}-${pad(fi.getDate())}`,
+        hora: `pad(fi.getHours()):{pad(fi.getMinutes())}`,
+        duracion: Math.round((ff - fi) / 60000),
+        descripcion: armarDescripcion(leerEstado(ev.descripcion).descripcionLimpia, estado, reprogramacion)
+      };
+
+      try {
+        const respuesta = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'actualizar', id: id, datos: datos })
+        });
+        const res = await respuesta.json();
+        if (res.exito) {
+          cargarDatosDeCalendar();
+          return true;
+        }
+        alert('Error al actualizar el estado: ' + res.error);
+      } catch (error) {
+        alert('Error de conexión');
+      }
+      return false;
+    }
+
+    function marcarRealizada(id) {
+      guardarEstado(id, 'realizada', '');
+    }
+
+    function marcarPendiente(id) {
+      guardarEstado(id, 'pendiente', '');
+    }
+
+    function abrirModalNoRealizada(id) {
+      eventoNoRealizadaId = id;
+      const ev = todosLosEventos.find(e => e.id === id);
+      const info = ev ? leerEstado(ev.descripcion) : { reprogramacion: '' };
+      document.getElementById('fechaReprogramacion').value = info.reprogramacion || '';
+      document.getElementById('modalNoRealizada').classList.remove('hidden');
+    }
+
+    function cerrarModalNoRealizada() {
+      eventoNoRealizadaId = null;
+      document.getElementById('modalNoRealizada').classList.add('hidden');
+    }
+
+    async function confirmarNoRealizada() {
+      if (!eventoNoRealizadaId) return;
+      const btn = document.getElementById('btnConfirmarNoRealizada');
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+      btn.disabled = true;
+
+      const fecha = document.getElementById('fechaReprogramacion').value;
+      await guardarEstado(eventoNoRealizadaId, 'no_realizada', fecha);
+
+      btn.innerHTML = 'Guardar';
+      btn.disabled = false;
+      cerrarModalNoRealizada();
+    }
+
+        // Abre WhatsApp con el mensaje de la actividad ya escrito
+    function enviarWhatsApp(id) {
+      const ev = todosLosEventos.find(e => e.id === id);
+      if (!ev) return;
+
+      const info = leerEstado(ev.descripcion);
+      const fi = new Date(ev.fechaInicio);
+      const ff = new Date(ev.fechaFin);
+      const fecha = fi.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
+      const horaIni = fi.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+      const horaFin = ff.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+
+      let texto = '*' + (ev.tipo || 'Actividad') + '*\n' + ev.titulo +
+                  '\n\n📅 ' + fecha + '\n🕐 ' + horaIni + ' a ' + horaFin;
+
+      if (info.descripcionLimpia) {
+        texto += '\n\n' + info.descripcionLimpia;
+      }
+
+      if (info.estado === 'no_realizada') {
+        texto += '\n\n⚠️ Esta reunión no se realizó.';
+        if (info.reprogramacion) {
+          texto += ' Nueva fecha: ' + formatearFechaISO(info.reprogramacion) + '.';
+        }
+      }
+
+      texto += '\n\nCoordinación UTP - Colegio Marina de Chile';
+
+      window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
+    }
+
     function guardarConfiguracion() {
       const nombre = document.getElementById('inputNombreConfig').value;
       if (nombre.trim() !== '') {
@@ -533,3 +705,5 @@
   </script>
 </body>
 </html>
+
+
