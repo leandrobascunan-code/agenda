@@ -94,12 +94,23 @@
           </div>
         </div>
         
-        <div class="flex overflow-x-auto space-x-2 mb-6 bg-white p-1.5 rounded-xl shadow-sm border border-slate-200 hide-scrollbar whitespace-nowrap">
+        <div class="flex overflow-x-auto space-x-2 mb-4 bg-white p-1.5 rounded-xl shadow-sm border border-slate-200 hide-scrollbar whitespace-nowrap">
           <button class="tab-btn active px-4 md:px-5 py-2 rounded-lg font-medium text-sm transition" onclick="filtrarVista('hoy', this)">Hoy</button>
           <button class="tab-btn px-4 md:px-5 py-2 rounded-lg font-medium text-sm transition hover:bg-slate-50" onclick="filtrarVista('semana', this)">Esta Semana</button>
           <button class="tab-btn px-4 md:px-5 py-2 rounded-lg font-medium text-sm transition hover:bg-slate-50" onclick="filtrarVista('mes', this)">Este Mes</button>
           <button class="tab-btn px-4 md:px-5 py-2 rounded-lg font-medium text-sm transition hover:bg-slate-50" onclick="filtrarVista('realizadas', this)">Realizadas</button>
           <button class="tab-btn px-4 md:px-5 py-2 rounded-lg font-medium text-sm transition hover:bg-slate-50" onclick="filtrarVista('postergadas', this)">Postergadas</button>
+        </div>
+
+        <!-- Navegación por días -->
+        <div class="flex items-center justify-between bg-white rounded-xl shadow-sm border border-slate-200 p-2 mb-5">
+          <button onclick="moverDia(-1)" title="Día anterior" class="w-10 h-10 md:w-11 md:h-11 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition flex-shrink-0"><i class="fa-solid fa-chevron-left"></i></button>
+          <div class="text-center px-2 min-w-0">
+            <p id="navDiaTitulo" class="text-sm md:text-base font-extrabold text-slate-800"></p>
+            <p id="navDiaFeriado" class="hidden text-xs md:text-sm font-bold text-red-600"></p>
+            <button id="btnHoyDia" onclick="irAHoy()" class="hidden text-xs font-bold text-indigo-600 hover:underline mt-0.5">Volver a hoy</button>
+          </div>
+          <button onclick="moverDia(1)" title="Día siguiente" class="w-10 h-10 md:w-11 md:h-11 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition flex-shrink-0"><i class="fa-solid fa-chevron-right"></i></button>
         </div>
 
         <p id="tituloRangoFechas" class="text-xs md:text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">MOSTRANDO ACTIVIDADES DE HOY</p>
@@ -132,6 +143,7 @@
             <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-indigo-500 mr-1.5"></span> Pendiente</span>
             <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span> Realizada</span>
             <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-red-500 mr-1.5"></span> No realizada</span>
+            <span class="flex items-center"><span class="w-3 h-3 rounded bg-red-100 border border-red-300 mr-1.5"></span> Feriado</span>
           </div>
         </div>
       </section>
@@ -256,9 +268,12 @@
     <div class="bg-white rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl">
       <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4"><i class="fa-solid fa-calendar-xmark"></i></div>
       <h3 class="text-xl font-bold text-center text-slate-800 mb-2">Reunión no realizada</h3>
-      <p class="text-center text-slate-500 mb-5 text-sm">Si lo desea, indique la fecha en que se reprogramará. Puede dejarla en blanco.</p>
-      <label class="block text-sm font-bold text-slate-700 mb-2">Fecha de reprogramación (opcional)</label>
-      <input type="date" id="fechaReprogramacion" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm mb-6">
+      <p class="text-center text-slate-500 mb-5 text-sm">Si lo desea, indique la nueva fecha y hora en que se reprogramará. Puede dejarlas en blanco.</p>
+      <label class="block text-sm font-bold text-slate-700 mb-2">Nueva fecha (opcional)</label>
+      <input type="date" id="fechaReprogramacion" onchange="mostrarDiaSemanaRepro()" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm mb-1">
+      <p id="diaSemanaRepro" class="text-xs font-bold text-indigo-600 mb-4 min-h-[16px]"></p>
+      <label class="block text-sm font-bold text-slate-700 mb-2">Nueva hora (opcional)</label>
+      <input type="time" id="horaReprogramacion" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm mb-6">
       <div class="flex space-x-3">
         <button onclick="cerrarModalNoRealizada()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition">Cancelar</button>
         <button onclick="confirmarNoRealizada()" id="btnConfirmarNoRealizada" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl shadow-md transition">Guardar</button>
@@ -280,6 +295,130 @@
 
     const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
+    // =====================================================
+    // FERIADOS DE CHILE
+    // Se calculan según la ley vigente (fijos, Semana Santa,
+    // traslados a lunes y feriados adicionales de septiembre).
+    // No incluye feriados regionales.
+    // =====================================================
+
+    // Día de junio en que cae el solsticio (Día Nacional de los Pueblos Indígenas, Ley 21.357)
+    const SOLSTICIO_JUNIO = { 2024: 20, 2025: 20, 2026: 21, 2027: 21, 2028: 20, 2029: 20, 2030: 21, 2031: 21, 2032: 20, 2033: 20, 2034: 21, 2035: 21 };
+    const cacheFeriados = {};
+
+    function sumarDias(d, n) {
+      return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+    }
+
+    // Domingo de Pascua (algoritmo de Meeus/Jones/Butcher)
+    function pascua(anio) {
+      const a = anio % 19, b = Math.floor(anio / 100), c = anio % 100;
+      const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+      const g = Math.floor((b - f + 1) / 3);
+      const h = (19 * a + b - d - g + 15) % 30;
+      const i = Math.floor(c / 4), k = c % 4;
+      const l = (32 + 2 * e + 2 * i - h - k) % 7;
+      const m = Math.floor((a + 11 * h + 22 * l) / 451);
+      const mes = Math.floor((h + l - 7 * m + 114) / 31);
+      const dia = ((h + l - 7 * m + 114) % 31) + 1;
+      return new Date(anio, mes - 1, dia);
+    }
+
+    // Ley 19.668: martes, miércoles o jueves pasan al lunes anterior; viernes pasa al lunes siguiente
+    function moverALunes(f) {
+      const dow = f.getDay();
+      if (dow >= 2 && dow <= 4) return sumarDias(f, -(dow - 1));
+      if (dow === 5) return sumarDias(f, 3);
+      return f;
+    }
+
+    function calcularFeriados(anio) {
+      const mapa = {};
+      const add = (f, nombre) => { mapa[claveDia(f)] = nombre; };
+      const fecha = (m, d) => new Date(anio, m - 1, d);
+
+      // Año Nuevo (Ley 20.983: si el 1 de enero es domingo, el 2 también es feriado)
+      add(fecha(1, 1), 'Año Nuevo');
+      if (fecha(1, 1).getDay() === 0) add(fecha(1, 2), 'Feriado adicional de Año Nuevo');
+
+      // Semana Santa
+      const p = pascua(anio);
+      add(sumarDias(p, -2), 'Viernes Santo');
+      add(sumarDias(p, -1), 'Sábado Santo');
+
+      add(fecha(5, 1), 'Día Nacional del Trabajo');
+      add(fecha(5, 21), 'Día de las Glorias Navales');
+      add(fecha(6, SOLSTICIO_JUNIO[anio] || 21), 'Día Nacional de los Pueblos Indígenas');
+      add(moverALunes(fecha(6, 29)), 'San Pedro y San Pablo');
+      add(fecha(7, 16), 'Virgen del Carmen');
+      add(fecha(8, 15), 'Asunción de la Virgen');
+
+      // Fiestas Patrias (Leyes 20.215 y 20.983)
+      const dow18 = fecha(9, 18).getDay();
+      add(fecha(9, 18), 'Independencia Nacional');
+      add(fecha(9, 19), 'Glorias del Ejército');
+      if (dow18 === 2) add(fecha(9, 17), 'Feriado adicional de Fiestas Patrias');  // 18 martes y 19 miércoles
+      if (dow18 === 3) add(fecha(9, 20), 'Feriado adicional de Fiestas Patrias');  // 18 miércoles y 19 jueves
+      if (dow18 === 6) add(fecha(9, 17), 'Feriado adicional de Fiestas Patrias');  // 18 sábado y 19 domingo
+
+      add(moverALunes(fecha(10, 12)), 'Encuentro de Dos Mundos');
+
+      // Iglesias Evangélicas y Protestantes (Ley 20.299)
+      const nombreIgl = 'Día de las Iglesias Evangélicas y Protestantes';
+      const dow31 = fecha(10, 31).getDay();
+      if (dow31 === 2) add(fecha(10, 30), nombreIgl);
+      else if (dow31 === 3) add(fecha(11, 2), nombreIgl);
+      else add(fecha(10, 31), nombreIgl);
+
+      add(fecha(11, 1), 'Todos los Santos');
+      add(fecha(12, 8), 'Inmaculada Concepción');
+      add(fecha(12, 25), 'Navidad');
+
+      return mapa;
+    }
+
+    // Devuelve el nombre del feriado ('' si no es feriado)
+    function feriadoDe(fecha) {
+      const anio = fecha.getFullYear();
+      if (!cacheFeriados[anio]) cacheFeriados[anio] = calcularFeriados(anio);
+      return cacheFeriados[anio][claveDia(fecha)] || '';
+    }
+
+    // =====================================================
+    // NAVEGACIÓN POR DÍAS Y MESES
+    // =====================================================
+
+    // Avanza (+1) o retrocede (-1) un día
+    function moverDia(delta) {
+      const base = diaSeleccionado ? new Date(diaSeleccionado + 'T00:00:00') : new Date();
+      base.setHours(0, 0, 0, 0);
+      const nueva = sumarDias(base, delta);
+      diaSeleccionado = claveDia(nueva);
+      mesVisible = { anio: nueva.getFullYear(), mes: nueva.getMonth() };
+      aplicarFiltro(vistaActual);
+    }
+
+    // Muestra en la barra el día de referencia y si es feriado
+    function renderizarNavDia() {
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      const ref = diaSeleccionado ? new Date(diaSeleccionado + 'T00:00:00') : hoy;
+      const esHoy = claveDia(ref) === claveDia(hoy);
+
+      document.getElementById('navDiaTitulo').innerText = (esHoy ? 'Hoy · ' : '') + nombreDia(ref) + ' de ' + ref.getFullYear();
+
+      const fer = feriadoDe(ref);
+      const elFer = document.getElementById('navDiaFeriado');
+      if (fer) {
+        elFer.innerText = 'Feriado: ' + fer;
+        elFer.classList.remove('hidden');
+      } else {
+        elFer.classList.add('hidden');
+      }
+
+      document.getElementById('btnHoyDia').classList.toggle('hidden', !diaSeleccionado);
+    }
+
     // Avanza (+1) o retrocede (-1) un mes en el calendario
     function cambiarMes(delta) {
       let m = mesVisible.mes + delta;
@@ -291,7 +430,7 @@
       aplicarFiltro(vistaActual);
     }
 
-    // Vuelve al mes actual
+    // Vuelve a hoy
     function irAHoy() {
       const h = new Date();
       mesVisible = { anio: h.getFullYear(), mes: h.getMonth() };
@@ -300,7 +439,7 @@
     }
 
     // Marcas guardadas dentro de la descripción del evento
-    const MARCA_ESTADO = /\[\[ESTADO:(realizada|no_realizada)(?:\|REPROG:(\d{4}-\d{2}-\d{2}))?\]\]/;
+    const MARCA_ESTADO = /\[\[ESTADO:(realizada|no_realizada)(?:\|REPROG:(\d{4}-\d{2}-\d{2})(?:T(\d{2}:\d{2}))?)?\]\]/;
     const MARCA_TEL = /\[\[TEL:(\d+)\]\]/;
 
     function leerEstado(descripcion) {
@@ -310,18 +449,23 @@
       return {
         estado: m ? m[1] : 'pendiente',
         reprogramacion: m && m[2] ? m[2] : '',
+        reprogramacionHora: m && m[3] ? m[3] : '',
         telefono: t ? t[1] : '',
         descripcionLimpia: texto.replace(MARCA_ESTADO, '').replace(MARCA_TEL, '').trim()
       };
     }
 
-    function armarDescripcion(descripcionLimpia, estado, reprogramacion, telefono) {
+    function armarDescripcion(descripcionLimpia, estado, reprogramacion, telefono, reprogramacionHora) {
       const partes = [];
       if (descripcionLimpia) partes.push(descripcionLimpia);
       if (estado === 'realizada') {
         partes.push('[[ESTADO:realizada]]');
       } else if (estado === 'no_realizada') {
-        partes.push('[[ESTADO:no_realizada' + (reprogramacion ? '|REPROG:' + reprogramacion : '') + ']]');
+        let repro = '';
+        if (reprogramacion) {
+          repro = '|REPROG:' + reprogramacion + (reprogramacionHora ? 'T' + reprogramacionHora : '');
+        }
+        partes.push('[[ESTADO:no_realizada' + repro + ']]');
       }
       if (telefono) partes.push('[[TEL:' + telefono + ']]');
       return partes.join('\n');
@@ -349,15 +493,42 @@
       return d;
     }
 
+    // Texto de día de la semana + feriado o fin de semana, para los formularios
+    function textoDiaConAviso(fechaISO) {
+      const f = new Date(fechaISO + 'T00:00:00');
+      const fer = feriadoDe(f);
+      let html = nombreDia(f);
+      if (fer) {
+        html += ' <span class="text-red-600">· Feriado: ' + fer + '</span>';
+      } else if (f.getDay() === 0 || f.getDay() === 6) {
+        html += ' <span class="text-amber-600">· Fin de semana</span>';
+      }
+      return html;
+    }
+
     // Muestra el día de la semana bajo el campo Fecha del formulario
     function mostrarDiaSemanaForm() {
       const v = document.getElementById('fecha').value;
-      document.getElementById('diaSemanaForm').innerText = v ? nombreDia(new Date(v + 'T00:00:00')) : '';
+      document.getElementById('diaSemanaForm').innerHTML = v ? textoDiaConAviso(v) : '';
+    }
+
+    // Muestra el día de la semana bajo la nueva fecha de reprogramación
+    function mostrarDiaSemanaRepro() {
+      const v = document.getElementById('fechaReprogramacion').value;
+      document.getElementById('diaSemanaRepro').innerHTML = v ? textoDiaConAviso(v) : '';
     }
 
     function formatearFechaISO(iso) {
       const [a, m, d] = iso.split('-');
       return d + '-' + m + '-' + a;
+    }
+
+    // Ejemplo: "lunes 5 de octubre a las 15:30"
+    function formatearReprogramacion(fechaISO, hora) {
+      const dia = new Date(fechaISO + 'T00:00:00')
+        .toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
+        .replace(',', '');
+      return dia + (hora ? ' a las ' + hora : '');
     }
 
     const estiloTipos = {
@@ -426,7 +597,7 @@
       const eventoExistente = id ? todosLosEventos.find(e => e.id === id) : null;
       const estadoPrevio = eventoExistente
         ? leerEstado(eventoExistente.descripcion)
-        : { estado: 'pendiente', reprogramacion: '' };
+        : { estado: 'pendiente', reprogramacion: '', reprogramacionHora: '' };
       const datos = {
         tipo: document.getElementById('tipoActividad').value,
         titulo: document.getElementById('titulo').value,
@@ -438,7 +609,8 @@
           document.getElementById('descripcion').value.trim(),
           estadoPrevio.estado,
           estadoPrevio.reprogramacion,
-          normalizarTelefono(document.getElementById('telefono').value)
+          normalizarTelefono(document.getElementById('telefono').value),
+          estadoPrevio.reprogramacionHora
         )
       };
 
@@ -517,13 +689,16 @@
       let textoTitulo = "";
 
       if (diaSeleccionado) {
-        textoTitulo = "Actividades del " + nombreDia(new Date(diaSeleccionado + 'T00:00:00'));
+        const dSel = new Date(diaSeleccionado + 'T00:00:00');
+        const fSel = feriadoDe(dSel);
+        textoTitulo = "Actividades del " + nombreDia(dSel) + (fSel ? ' · Feriado: ' + fSel : '');
         eventosFiltrados = todosLosEventos
           .filter(e => claveDia(new Date(e.fechaInicio)) === diaSeleccionado)
           .sort(porFecha);
       }
       else if (vista === 'hoy') {
-        textoTitulo = "Actividades de hoy · " + nombreDia(hoy);
+        const fHoy = feriadoDe(hoy);
+        textoTitulo = "Actividades de hoy · " + nombreDia(hoy) + (fHoy ? ' · Feriado: ' + fHoy : '');
         eventosFiltrados = todosLosEventos
           .filter(e => estadoDe(e) === 'pendiente' && claveDia(new Date(e.fechaInicio)) === claveDia(hoy))
           .sort(porFecha);
@@ -560,6 +735,7 @@
       }
 
       document.getElementById('tituloRangoFechas').innerText = textoTitulo;
+      renderizarNavDia();
       renderizarLista(eventosFiltrados);
       renderizarCalendario();
     }
@@ -609,6 +785,7 @@
         const esHoy = k === hoyClave;
         const esSel = k === diaSeleccionado;
         const finDeSemana = fecha.getDay() === 0 || fecha.getDay() === 6;
+        const nombreFeriado = feriadoDe(fecha);
         const total = info ? info.pendiente + info.realizada + info.no_realizada : 0;
 
         let puntos = '';
@@ -620,8 +797,10 @@
 
         const fondo = esSel
           ? 'bg-indigo-50 ring-2 ring-inset ring-indigo-500'
-          : (esHoy ? 'bg-indigo-50' : 'bg-white hover:bg-slate-50');
-        const colorNumero = esHoy ? 'text-indigo-700 font-extrabold' : (finDeSemana ? 'text-red-600 font-medium' : 'text-slate-800 font-medium');
+          : (esHoy ? 'bg-indigo-50' : (nombreFeriado ? 'bg-red-50 hover:bg-red-100' : 'bg-white hover:bg-slate-50'));
+        const colorNumero = esHoy
+          ? 'text-indigo-700 font-extrabold'
+          : ((finDeSemana || nombreFeriado) ? 'text-red-600 font-medium' : 'text-slate-800 font-medium');
 
         html += `
           <button onclick="seleccionarDia('${k}')" class="min-h-[56px] md:min-h-[84px] p-1 md:p-2 flex flex-col items-start justify-start text-left transition ${fondo}">
@@ -629,6 +808,7 @@
               <span class="text-base md:text-2xl ${colorNumero}">${d}</span>
               <span class="text-[9px] md:text-[10px] uppercase font-bold ${esHoy ? 'text-indigo-600' : 'text-slate-400'}">${DIAS_CORTOS[fecha.getDay()]}</span>
             </span>
+            ${nombreFeriado ? `<span class="w-full mt-0.5 text-[9px] md:text-[10px] font-bold text-red-600 leading-tight md:truncate" title="${nombreFeriado}"><span class="md:hidden">Feriado</span><span class="hidden md:inline">${nombreFeriado}</span></span>` : ''}
             <span class="flex gap-1 mt-1">${puntos}</span>
             ${total ? `<span class="hidden md:block text-[10px] text-slate-500 mt-1">${total} act.</span>` : ''}
           </button>`;
@@ -662,13 +842,19 @@
         const estilo = estiloTipos[ev.tipo] || estiloTipos['Otras'];
         const textoDia = nombreDia(fechaObj);
 
+        // Aviso si la actividad cae en feriado
+        const feriadoTxt = feriadoDe(fechaObj);
+        const badgeFeriado = feriadoTxt
+          ? `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-xs font-bold bg-red-50 text-red-700 border border-red-200"><i class="fa-solid fa-flag mr-1.5"></i> Feriado: ${feriadoTxt}</span>`
+          : '';
+
         // Estado de la reunión y descripción completa (sin las marcas internas)
         const info = leerEstado(ev.descripcion);
         let badgeEstado = '';
         if (info.estado === 'realizada') {
           badgeEstado = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200"><i class="fa-solid fa-circle-check mr-1.5"></i> Realizada</span>`;
         } else if (info.estado === 'no_realizada') {
-          badgeEstado = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-xs font-bold bg-red-100 text-red-700 border border-red-200"><i class="fa-solid fa-circle-xmark mr-1.5"></i> No realizada${info.reprogramacion ? ' · Reprogramada para el ' + formatearFechaISO(info.reprogramacion) : ''}</span>`;
+          badgeEstado = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-xs font-bold bg-red-100 text-red-700 border border-red-200"><i class="fa-solid fa-circle-xmark mr-1.5"></i> No realizada${info.reprogramacion ? ' · Reprogramada para el ' + formatearReprogramacion(info.reprogramacion, info.reprogramacionHora) : ''}</span>`;
         }
 
         // Reunión pendiente cuya hora ya pasó: recordatorio para registrarla
@@ -695,6 +881,7 @@
                     <i class="fa-solid ${estilo.icon} mr-1.5"></i> ${ev.tipo || 'Otras'}
                   </span>
                   ${badgeEstado}
+                  ${badgeFeriado}
                 </div>
                 <h4 class="text-base md:text-lg font-bold text-slate-800 leading-tight break-words">${ev.titulo}</h4>
                 <div class="text-xs md:text-sm text-slate-500 mt-1">
@@ -726,7 +913,7 @@
       document.getElementById('duracion').value = '60'; 
       document.getElementById('tituloFormulario').innerText = 'Agendar Actividad';
       document.getElementById('btnGuardar').innerText = 'Guardar Actividad';
-      document.getElementById('diaSemanaForm').innerText = '';
+      document.getElementById('diaSemanaForm').innerHTML = '';
       document.getElementById('errorFormulario').classList.add('hidden');
     }
 
@@ -803,7 +990,7 @@
     }
 
     // Guarda el estado reutilizando la acción 'actualizar' que ya existe en su Apps Script
-    async function guardarEstado(id, estado, reprogramacion) {
+    async function guardarEstado(id, estado, reprogramacion, reprogramacionHora) {
       const ev = todosLosEventos.find(e => e.id === id);
       if (!ev) return false;
 
@@ -818,7 +1005,7 @@
         fecha: `${fi.getFullYear()}-${pad(fi.getMonth() + 1)}-${pad(fi.getDate())}`,
         hora: `${pad(fi.getHours())}:${pad(fi.getMinutes())}`,
         duracion: Math.round((ff - fi) / 60000),
-        descripcion: armarDescripcion(infoActual.descripcionLimpia, estado, reprogramacion, infoActual.telefono)
+        descripcion: armarDescripcion(infoActual.descripcionLimpia, estado, reprogramacion, infoActual.telefono, reprogramacionHora)
       };
 
       try {
@@ -849,8 +1036,10 @@
     function abrirModalNoRealizada(id) {
       eventoNoRealizadaId = id;
       const ev = todosLosEventos.find(e => e.id === id);
-      const info = ev ? leerEstado(ev.descripcion) : { reprogramacion: '' };
+      const info = ev ? leerEstado(ev.descripcion) : { reprogramacion: '', reprogramacionHora: '' };
       document.getElementById('fechaReprogramacion').value = info.reprogramacion || '';
+      document.getElementById('horaReprogramacion').value = info.reprogramacionHora || '';
+      mostrarDiaSemanaRepro();
       document.getElementById('modalNoRealizada').classList.remove('hidden');
     }
 
@@ -861,12 +1050,20 @@
 
     async function confirmarNoRealizada() {
       if (!eventoNoRealizadaId) return;
+
+      const fecha = document.getElementById('fechaReprogramacion').value;
+      const hora = document.getElementById('horaReprogramacion').value;
+
+      if (hora && !fecha) {
+        alert('Indicó una hora, pero falta la nueva fecha. Complete la fecha o borre la hora.');
+        return;
+      }
+
       const btn = document.getElementById('btnConfirmarNoRealizada');
       btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
       btn.disabled = true;
 
-      const fecha = document.getElementById('fechaReprogramacion').value;
-      await guardarEstado(eventoNoRealizadaId, 'no_realizada', fecha);
+      await guardarEstado(eventoNoRealizadaId, 'no_realizada', fecha, hora);
 
       btn.innerHTML = 'Guardar';
       btn.disabled = false;
@@ -895,7 +1092,7 @@
       if (info.estado === 'no_realizada') {
         texto += '\n\n⚠️ Esta reunión no se realizó.';
         if (info.reprogramacion) {
-          texto += ' Nueva fecha: ' + formatearFechaISO(info.reprogramacion) + '.';
+          texto += ' Nueva fecha: ' + formatearReprogramacion(info.reprogramacion, info.reprogramacionHora) + '.';
         }
       }
 
@@ -924,6 +1121,7 @@
       } else {
         document.getElementById('nombreUsuario').innerText = 'Usuario';
       }
+      renderizarNavDia();
       renderizarCalendario();
       cargarDatosDeCalendar();
     };
