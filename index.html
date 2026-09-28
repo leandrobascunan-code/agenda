@@ -13,6 +13,9 @@
   <title>Coordinación - Marina de Chile</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Generador de PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
@@ -98,10 +101,13 @@
       <section id="panel" class="seccion activa">
         <div class="flex flex-wrap items-center justify-between mb-3 gap-2">
           <h3 class="text-base md:text-xl font-bold text-slate-800">Calendario de Actividades</h3>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 flex-wrap">
             <div id="cargandoEventos" class="text-xs md:text-sm font-medium text-indigo-600 hidden bg-indigo-50 px-3 py-1 rounded-full">
               <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Sincronizando...
             </div>
+            <button onclick="abrirModalReporte()" class="text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 px-3 py-2 md:py-1.5 rounded-full flex items-center transition">
+              <i class="fa-solid fa-file-pdf mr-1.5"></i> Reporte PDF
+            </button>
             <button onclick="irAlCalendario()" class="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 md:py-1.5 rounded-full flex items-center transition">
               <i class="fa-regular fa-calendar mr-1.5"></i> Ver calendario
             </button>
@@ -130,37 +136,43 @@
         <p id="tituloRangoFechas" class="text-xs md:text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">MOSTRANDO ACTIVIDADES DE HOY</p>
         <div id="listaEventos" class="space-y-4"></div>
 
-        <!-- Calendario (abajo). Celular: ancho completo. PC: compacto -->
-        <div id="bloqueCalendario" class="mt-8 bg-white rounded-xl shadow-sm border border-slate-200 p-3 w-full md:max-w-md scroll-mt-24">
+        <!-- Calendario (abajo). Celular: ancho completo. PC: grande y centrado -->
+        <div id="bloqueCalendario" class="mt-8 bg-white rounded-xl shadow-sm border border-slate-200 p-3 md:p-5 w-full md:max-w-4xl md:mx-auto scroll-mt-24">
           <div class="flex items-center justify-between mb-2">
-            <h4 class="text-sm font-bold text-slate-700 flex items-center"><i class="fa-regular fa-calendar mr-2 text-indigo-500"></i> Calendario</h4>
+            <h4 class="text-sm md:text-base font-bold text-slate-700 flex items-center"><i class="fa-regular fa-calendar mr-2 text-indigo-500"></i> Calendario</h4>
             <button id="btnToggleCal" onclick="alternarCalendario()" class="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 md:py-1.5 rounded-full transition">
               <span id="txtToggleCal">Ocultar</span>
             </button>
           </div>
 
           <div id="cuerpoCalendario">
-            <div class="flex items-center justify-between mb-1.5">
-              <button onclick="cambiarMes(-1)" title="Mes anterior" class="w-10 h-10 md:w-8 md:h-8 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-left text-sm md:text-xs"></i></button>
-              <h3 id="tituloCalendario" class="text-lg md:text-base font-extrabold text-slate-900 font-serif text-center"></h3>
-              <button onclick="cambiarMes(1)" title="Mes siguiente" class="w-10 h-10 md:w-8 md:h-8 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-right text-sm md:text-xs"></i></button>
+            <div class="flex items-center justify-between mb-2">
+              <button onclick="cambiarMes(-1)" title="Mes anterior" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-left text-sm"></i></button>
+              <h3 id="tituloCalendario" class="text-lg md:text-2xl font-extrabold text-slate-900 font-serif text-center"></h3>
+              <button onclick="cambiarMes(1)" title="Mes siguiente" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-right text-sm"></i></button>
             </div>
-            <div class="flex items-center justify-center gap-4 min-h-[18px] mb-1.5">
-              <button id="btnHoyCalendario" onclick="irAHoy()" class="hidden text-xs md:text-[11px] font-bold text-indigo-600 hover:underline">Ir a hoy</button>
-              <button id="btnVerTodoMes" onclick="seleccionarDia(null)" class="hidden text-xs md:text-[11px] font-bold text-indigo-600 hover:underline">Quitar filtro de día</button>
+            <div class="flex items-center justify-center gap-4 min-h-[18px] mb-2">
+              <button id="btnHoyCalendario" onclick="irAHoy()" class="hidden text-xs md:text-sm font-bold text-indigo-600 hover:underline">Ir a hoy</button>
+              <button id="btnVerTodoMes" onclick="seleccionarDia(null)" class="hidden text-xs md:text-sm font-bold text-indigo-600 hover:underline">Quitar filtro de día</button>
             </div>
             <div class="border border-slate-300 rounded-lg overflow-hidden">
-              <div class="grid grid-cols-7 bg-[#b91c2f] text-white text-xs md:text-[11px] font-semibold text-center">
-                <div class="py-1.5 md:py-1">Lun</div><div class="py-1.5 md:py-1">Mar</div><div class="py-1.5 md:py-1">Mié</div><div class="py-1.5 md:py-1">Jue</div><div class="py-1.5 md:py-1">Vie</div><div class="py-1.5 md:py-1">Sáb</div><div class="py-1.5 md:py-1">Dom</div>
+              <div class="grid grid-cols-7 bg-[#b91c2f] text-white text-xs md:text-sm font-semibold text-center">
+                <div class="py-1.5 md:py-2"><span class="md:hidden">Lun</span><span class="hidden md:inline">Lunes</span></div>
+                <div class="py-1.5 md:py-2"><span class="md:hidden">Mar</span><span class="hidden md:inline">Martes</span></div>
+                <div class="py-1.5 md:py-2"><span class="md:hidden">Mié</span><span class="hidden md:inline">Miércoles</span></div>
+                <div class="py-1.5 md:py-2"><span class="md:hidden">Jue</span><span class="hidden md:inline">Jueves</span></div>
+                <div class="py-1.5 md:py-2"><span class="md:hidden">Vie</span><span class="hidden md:inline">Viernes</span></div>
+                <div class="py-1.5 md:py-2"><span class="md:hidden">Sáb</span><span class="hidden md:inline">Sábado</span></div>
+                <div class="py-1.5 md:py-2"><span class="md:hidden">Dom</span><span class="hidden md:inline">Domingo</span></div>
               </div>
               <div id="gridCalendario" class="grid grid-cols-7 gap-px bg-slate-300"></div>
             </div>
-            <div id="feriadosMes" class="mt-2"></div>
-            <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[11px] md:text-[10px] text-slate-500">
-              <span class="flex items-center"><span class="w-2 h-2 md:w-1.5 md:h-1.5 rounded-full bg-indigo-500 mr-1"></span> Pendiente</span>
-              <span class="flex items-center"><span class="w-2 h-2 md:w-1.5 md:h-1.5 rounded-full bg-emerald-500 mr-1"></span> Realizada</span>
-              <span class="flex items-center"><span class="w-2 h-2 md:w-1.5 md:h-1.5 rounded-full bg-red-500 mr-1"></span> No realizada</span>
-              <span class="flex items-center"><span class="w-2.5 h-2.5 rounded bg-red-100 border border-red-300 mr-1"></span> Feriado</span>
+            <div id="feriadosMes" class="mt-3"></div>
+            <div class="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-[11px] md:text-xs text-slate-500">
+              <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-indigo-500 mr-1.5"></span> Pendiente</span>
+              <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span> Realizada</span>
+              <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-red-500 mr-1.5"></span> No realizada</span>
+              <span class="flex items-center"><span class="w-2.5 h-2.5 rounded bg-red-100 border border-red-300 mr-1.5"></span> Feriado</span>
             </div>
           </div>
         </div>
@@ -258,7 +270,7 @@
             <div>
               <label class="block text-sm font-bold text-slate-700 mb-2">Tu Nombre Completo</label>
               <input type="text" id="inputNombreConfig" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none" placeholder="Ej. Leandro Bascuñán">
-              <p class="text-xs text-slate-500 mt-2">El logo de la institución ("INSIGNIA.png") ya está configurado por defecto para todos los usuarios.</p>
+              <p class="text-xs text-slate-500 mt-2">El logo de la institución ("INSIGNIA.png") ya está configurado por defecto para todos los usuarios. Este nombre aparece en la firma de los reportes PDF.</p>
             </div>
             
             <button onclick="guardarConfiguracion()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 px-6 rounded-xl w-full mt-4 transition shadow-md">Guardar Cambios</button>
@@ -319,6 +331,60 @@
     </div>
   </div>
 
+  <!-- Modal Reporte PDF -->
+  <div id="modalReporte" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[60] flex items-end md:items-center justify-center p-0 md:p-4">
+    <div class="bg-white rounded-t-3xl md:rounded-2xl p-5 md:p-8 pb-8 w-full md:max-w-md shadow-2xl max-h-[92vh] overflow-y-auto">
+      <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-3"><i class="fa-solid fa-file-pdf"></i></div>
+      <h3 class="text-lg md:text-xl font-bold text-center text-slate-800 mb-1">Reporte de agenda en PDF</h3>
+      <p class="text-center text-slate-500 text-sm mb-5">Incluye el logo del colegio y el detalle de las actividades.</p>
+
+      <label class="block text-sm font-bold text-slate-700 mb-2">Período</label>
+      <select id="repPeriodo" onchange="alternarRangoReporte()" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
+        <option value="mes_calendario" id="optRepMesCal">Mes del calendario</option>
+        <option value="hoy">Hoy</option>
+        <option value="semana">Esta semana</option>
+        <option value="rango">Rango de fechas</option>
+      </select>
+
+      <div id="repRango" class="hidden grid grid-cols-2 gap-3 mt-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Desde</label>
+          <input type="date" id="repDesde" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Hasta</label>
+          <input type="date" id="repHasta" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
+        </div>
+      </div>
+
+      <label class="block text-sm font-bold text-slate-700 mb-2 mt-4">Estado de las actividades</label>
+      <select id="repEstado" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
+        <option value="todas">Todas</option>
+        <option value="pendiente">Solo pendientes (incluye por registrar)</option>
+        <option value="realizada">Solo realizadas</option>
+        <option value="no_realizada">Solo no realizadas</option>
+      </select>
+
+      <label class="flex items-center gap-3 mt-4 text-sm text-slate-700 cursor-pointer">
+        <input type="checkbox" id="repDescripcion" checked class="w-5 h-5 accent-indigo-600">
+        <span>Incluir la descripción de cada actividad</span>
+      </label>
+      <label class="flex items-center gap-3 mt-3 text-sm text-slate-700 cursor-pointer">
+        <input type="checkbox" id="repTelefono" class="w-5 h-5 accent-indigo-600">
+        <span>Incluir teléfonos de contacto</span>
+      </label>
+
+      <p class="text-xs text-slate-400 mt-4">Se incluyen las actividades cargadas en la agenda (últimos 180 días y próximos 90 días).</p>
+
+      <div class="flex space-x-3 mt-5">
+        <button onclick="cerrarModalReporte()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 md:py-2.5 rounded-xl transition">Cancelar</button>
+        <button onclick="descargarReportePDF()" id="btnDescargarReporte" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 md:py-2.5 rounded-xl shadow-md transition flex items-center justify-center">
+          <i class="fa-solid fa-download mr-2"></i> Descargar
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // TU API URL DE GOOGLE APPS SCRIPT
     const API_URL = "https://script.google.com/macros/s/AKfycbyLuqLPomnA45W7MDiCFlWE1uXqnqOVAQGM93dcjeKwl_zjWdYd61J1Cv5pxj_0liQFZg/exec"; 
@@ -331,8 +397,14 @@
     let eventoAEliminar = null;
     let eventoEstadoId = null;
     let estadoElegido = 'pendiente';
+    let logoPdfCache = null;
 
     const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+    // Hora en formato 24 h: "09:30"
+    function hhmm(d) {
+      return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    }
 
     // =====================================================
     // FERIADOS DE CHILE
@@ -828,7 +900,8 @@
     }
 
     // Calendario mensual (los días de otros meses quedan en blanco)
-    // Celular: casillas más altas y fáciles de tocar. PC: compacto.
+    // Celular: casillas compactas con puntos de color.
+    // PC: casillas grandes con feriado y las primeras 2 actividades del día.
     function renderizarCalendario() {
       const hoy = new Date();
       const hoyClave = claveDia(hoy);
@@ -840,427 +913,11 @@
       document.getElementById('btnHoyCalendario').classList.toggle('hidden', anio === hoy.getFullYear() && mes === hoy.getMonth());
 
       const porDia = {};
+      const listaDia = {};
       todosLosEventos.forEach(ev => {
         const f = new Date(ev.fechaInicio);
         if (f.getFullYear() !== anio || f.getMonth() !== mes) return;
         const k = claveDia(f);
         if (!porDia[k]) porDia[k] = { pendiente: 0, realizada: 0, no_realizada: 0 };
         porDia[k][estadoDe(ev)]++;
-      });
-
-      const diasEnMes = new Date(anio, mes + 1, 0).getDate();
-      const primerDia = (new Date(anio, mes, 1).getDay() + 6) % 7; // lunes = 0
-      const totalCeldas = Math.ceil((primerDia + diasEnMes) / 7) * 7;
-      const feriadosMes = [];
-
-      let html = '';
-      for (let i = 0; i < totalCeldas; i++) {
-        const d = i - primerDia + 1;
-
-        if (d < 1 || d > diasEnMes) {
-          html += '<div class="bg-slate-100 min-h-[46px] md:min-h-[44px]"></div>';
-          continue;
-        }
-
-        const fecha = new Date(anio, mes, d);
-        const k = claveDia(fecha);
-        const info = porDia[k];
-        const esHoy = k === hoyClave;
-        const esSel = k === diaSeleccionado;
-        const finDeSemana = fecha.getDay() === 0 || fecha.getDay() === 6;
-        const nombreFeriado = feriadoDe(fecha);
-        if (nombreFeriado) feriadosMes.push({ k: k, d: d, dow: fecha.getDay(), nombre: nombreFeriado });
-
-        let puntos = '';
-        if (info) {
-          if (info.pendiente) puntos += '<span class="w-2 h-2 md:w-1.5 md:h-1.5 rounded-full bg-indigo-500"></span>';
-          if (info.realizada) puntos += '<span class="w-2 h-2 md:w-1.5 md:h-1.5 rounded-full bg-emerald-500"></span>';
-          if (info.no_realizada) puntos += '<span class="w-2 h-2 md:w-1.5 md:h-1.5 rounded-full bg-red-500"></span>';
-        }
-
-        const fondo = esSel
-          ? 'bg-indigo-50 ring-2 ring-inset ring-indigo-500'
-          : (esHoy ? 'bg-indigo-50' : (nombreFeriado ? 'bg-red-50 hover:bg-red-100' : 'bg-white hover:bg-slate-50'));
-        const colorNumero = esHoy
-          ? 'text-indigo-700 font-extrabold'
-          : ((finDeSemana || nombreFeriado) ? 'text-red-600 font-medium' : 'text-slate-800 font-medium');
-
-        html += `
-          <button onclick="seleccionarDia('${k}')" title="${nombreFeriado ? 'Feriado: ' + nombreFeriado : ''}" class="min-h-[46px] md:min-h-[44px] p-1 flex flex-col items-center md:items-start justify-start transition ${fondo}">
-            <span class="flex items-baseline gap-0.5">
-              <span class="text-base md:text-sm ${colorNumero}">${d}</span>
-              <span class="hidden md:inline text-[8px] uppercase font-bold ${esHoy ? 'text-indigo-600' : 'text-slate-400'}">${DIAS_CORTOS[fecha.getDay()]}</span>
-            </span>
-            <span class="flex gap-0.5 mt-0.5">${puntos}</span>
-          </button>`;
-      }
-
-      document.getElementById('gridCalendario').innerHTML = html;
-
-      // Lista de feriados del mes (los nombres no caben en las casillas)
-      const contFer = document.getElementById('feriadosMes');
-      if (feriadosMes.length === 0) {
-        contFer.innerHTML = '';
-      } else {
-        contFer.innerHTML =
-          '<p class="text-[11px] md:text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-0.5">Feriados del mes</p>' +
-          feriadosMes.map(f =>
-            `<button onclick="seleccionarDia('${f.k}')" class="block w-full text-left text-[13px] md:text-xs text-red-700 hover:underline py-0.5"><span class="font-bold">${capitalizar(DIAS_CORTOS[f.dow])} ${f.d}</span> · ${f.nombre}</button>`
-          ).join('');
-      }
-    }
-
-    function renderizarLista(eventos) {
-      const contenedor = document.getElementById('listaEventos');
-      if (eventos.length === 0) {
-        contenedor.innerHTML = `
-          <div class="text-center py-10 md:py-12 bg-white rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 mx-2 md:mx-0">
-            <i class="fa-solid fa-mug-hot text-3xl md:text-4xl mb-3 text-slate-300"></i>
-            <p class="font-medium text-sm md:text-base">No hay actividades agendadas.</p>
-          </div>`;
-        return;
-      }
-
-      const mesesCortos = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-      
-      contenedor.innerHTML = eventos.map(ev => {
-        const fechaObj = new Date(ev.fechaInicio);
-        const fechaFinObj = new Date(ev.fechaFin);
-        const dia = fechaObj.getDate();
-        const mesStr = mesesCortos[fechaObj.getMonth()];
-        
-        const horaInicioStr = fechaObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        const horaFinStr = fechaFinObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        
-        const estilo = estiloTipos[ev.tipo] || estiloTipos['Otras'];
-        const textoDia = nombreDia(fechaObj);
-
-        // Aviso si la actividad cae en feriado
-        const feriadoTxt = feriadoDe(fechaObj);
-        const badgeFeriado = feriadoTxt
-          ? `<span class="inline-flex items-center px-2 py-1 md:py-0.5 rounded text-[11px] md:text-xs font-bold bg-red-50 text-red-700 border border-red-200"><i class="fa-solid fa-flag mr-1.5"></i> Feriado: ${feriadoTxt}</span>`
-          : '';
-
-        // Estado: siempre visible y se puede tocar para cambiarlo
-        const info = leerEstado(ev.descripcion);
-        let colores, icono, etiqueta;
-        if (info.estado === 'realizada') {
-          colores = 'bg-emerald-100 text-emerald-700 border-emerald-200';
-          icono = 'fa-circle-check';
-          etiqueta = 'Realizada';
-        } else if (info.estado === 'no_realizada') {
-          colores = 'bg-red-100 text-red-700 border-red-200';
-          icono = 'fa-circle-xmark';
-          etiqueta = 'No realizada' + (info.reprogramacion ? ' · Reprogramada para el ' + formatearReprogramacion(info.reprogramacion, info.reprogramacionHora) : '');
-        } else if (fechaFinObj < new Date()) {
-          colores = 'bg-amber-100 text-amber-700 border-amber-200';
-          icono = 'fa-hourglass-half';
-          etiqueta = 'Por registrar';
-        } else {
-          colores = 'bg-indigo-50 text-indigo-700 border-indigo-200';
-          icono = 'fa-clock';
-          etiqueta = 'Pendiente';
-        }
-        const badgeEstado = `<button onclick="abrirModalEstado('${ev.id}')" title="Cambiar estado" class="inline-flex items-center px-2 py-1 md:py-0.5 rounded text-[11px] md:text-xs font-bold border text-left ${colores}"><i class="fa-solid ${icono} mr-1.5"></i> ${etiqueta} <i class="fa-solid fa-pen text-[9px] ml-1.5 opacity-60"></i></button>`;
-
-        // Botón ✓ rápido solo si aún no está realizada
-        const botonRealizada = info.estado !== 'realizada'
-          ? `<button onclick="marcarRealizada('${ev.id}')" title="Marcar como realizada" class="w-10 h-10 md:w-9 md:h-9 rounded-full bg-slate-50 hover:bg-emerald-100 text-slate-500 hover:text-emerald-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-check text-sm"></i></button>`
-          : '';
-
-        return `
-          <div class="group relative flex flex-col md:flex-row md:items-center justify-between p-4 md:p-5 bg-white rounded-2xl border border-slate-200 hover:border-indigo-300 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 mb-3 md:mb-0">
-            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b ${estilo.gradient} rounded-l-2xl"></div>
-            
-            <div class="flex items-start space-x-4 md:space-x-5 pl-2 md:pl-3 w-full">
-              <div class="flex flex-col items-center justify-center ${estilo.bg} ${estilo.text} w-14 h-14 md:w-16 md:h-16 rounded-xl border ${estilo.border} flex-shrink-0 shadow-inner">
-                <span class="text-[10px] font-bold uppercase tracking-wider">${mesStr}</span>
-                <span class="text-xl font-extrabold leading-none mt-0.5">${dia}</span>
-              </div>
-              <div class="flex-1 min-w-0 pr-2">
-                <div class="flex flex-wrap items-center gap-2 mb-1">
-                  <span class="inline-flex items-center px-2 py-1 md:py-0.5 rounded text-[11px] md:text-xs font-bold ${estilo.bg} ${estilo.text} border ${estilo.border}">
-                    <i class="fa-solid ${estilo.icon} mr-1.5"></i> ${ev.tipo || 'Otras'}
-                  </span>
-                  ${badgeEstado}
-                  ${badgeFeriado}
-                </div>
-                <h4 class="text-base md:text-lg font-bold text-slate-800 leading-tight break-words">${escaparHtml(ev.titulo)}</h4>
-                <div class="text-sm text-slate-500 mt-1">
-                  <span class="flex items-center font-bold text-slate-700"><i class="fa-regular fa-calendar text-slate-400 mr-1.5"></i> ${textoDia}</span>
-                  <span class="flex items-center font-medium mt-0.5"><i class="fa-regular fa-clock text-slate-400 mr-1.5"></i> ${horaInicioStr} - ${horaFinStr}</span>
-                  ${info.telefono ? `<span class="flex items-center font-medium mt-0.5"><i class="fa-solid fa-phone text-slate-400 mr-1.5"></i> +${info.telefono}</span>` : ''}
-                  ${info.estado === 'no_realizada' && info.motivo ? `<p class="mt-1.5 text-sm text-red-700 break-words"><span class="font-bold">Motivo:</span> ${escaparHtml(info.motivo)}</p>` : ''}
-                  ${info.descripcionLimpia ? `<p class="mt-2 text-sm text-slate-600 whitespace-pre-line break-words">${escaparHtml(info.descripcionLimpia)}</p>` : ''}
-                </div>
-              </div>
-            </div>
-            
-            <div class="acciones-card flex items-center justify-end space-x-2 mt-4 md:mt-0 pt-3 md:pt-0 border-t border-slate-100 md:border-none md:opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white md:pl-4">
-              <button onclick="enviarWhatsApp('${ev.id}')" title="Enviar por WhatsApp" class="w-10 h-10 md:w-9 md:h-9 rounded-full bg-slate-50 hover:bg-green-100 text-slate-500 hover:text-green-600 flex items-center justify-center transition shadow-sm"><i class="fa-brands fa-whatsapp text-base"></i></button>
-              ${botonRealizada}
-              <button onclick="abrirModalEstado('${ev.id}')" title="Cambiar estado" class="w-10 h-10 md:w-9 md:h-9 rounded-full bg-slate-50 hover:bg-indigo-100 text-slate-500 hover:text-indigo-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-clipboard-check text-sm"></i></button>
-              <button onclick="prepararEdicion('${ev.id}')" title="Editar actividad" class="w-10 h-10 md:w-9 md:h-9 rounded-full bg-slate-50 hover:bg-amber-100 text-slate-500 hover:text-amber-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-pen text-sm"></i></button>
-              <button onclick="abrirModalEliminar('${ev.id}')" title="Eliminar actividad" class="w-10 h-10 md:w-9 md:h-9 rounded-full bg-slate-50 hover:bg-red-100 text-slate-500 hover:text-red-600 flex items-center justify-center transition shadow-sm"><i class="fa-solid fa-trash text-sm"></i></button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function limpiarFormulario() {
-      document.getElementById('formActividad').reset();
-      document.getElementById('eventoId').value = '';
-      document.getElementById('tipoActividad').value = '';
-      document.getElementById('duracion').value = '60'; 
-      document.getElementById('tituloFormulario').innerText = 'Agendar Actividad';
-      document.getElementById('btnGuardar').innerText = 'Guardar Actividad';
-      document.getElementById('diaSemanaForm').innerHTML = '';
-      document.getElementById('errorFormulario').classList.add('hidden');
-    }
-
-    function prepararEdicion(id) {
-      const ev = todosLosEventos.find(e => e.id === id);
-      if(!ev) return;
-      
-      const fechaInicio = new Date(ev.fechaInicio);
-      const fechaFin = new Date(ev.fechaFin);
-      const duracionMinutos = Math.round((fechaFin - fechaInicio) / 60000);
-
-      const anio = fechaInicio.getFullYear();
-      const mes = String(fechaInicio.getMonth() + 1).padStart(2, '0');
-      const dia = String(fechaInicio.getDate()).padStart(2, '0');
-      const hora = String(fechaInicio.getHours()).padStart(2, '0');
-      const minutos = String(fechaInicio.getMinutes()).padStart(2, '0');
-
-      const soloFecha = `${anio}-${mes}-${dia}`;
-      const soloHora = `${hora}:${minutos}`;
-
-      document.getElementById('eventoId').value = ev.id;
-      
-      const tipoSelect = document.getElementById('tipoActividad');
-      const existeOpcion = Array.from(tipoSelect.options).some(opt => opt.value === ev.tipo);
-      tipoSelect.value = existeOpcion ? ev.tipo : 'Otras';
-      
-      document.getElementById('titulo').value = ev.titulo;
-      document.getElementById('fecha').value = soloFecha;
-      document.getElementById('hora').value = soloHora;
-      document.getElementById('duracion').value = duracionMinutos;
-
-      const infoEd = leerEstado(ev.descripcion);
-      document.getElementById('descripcion').value = infoEd.descripcionLimpia;
-      document.getElementById('telefono').value = infoEd.telefono;
-      mostrarDiaSemanaForm();
-      
-      document.getElementById('tituloFormulario').innerText = 'Editar Actividad';
-      document.getElementById('btnGuardar').innerText = 'Actualizar Actividad';
-      document.getElementById('errorFormulario').classList.add('hidden');
-      
-      cambiarSeccion('actividades');
-    }
-
-    function finalizarGuardado(respuesta, btn, originalText) {
-      btn.innerHTML = originalText;
-      btn.disabled = false;
-      
-      if(respuesta.exito) { 
-        cambiarSeccion('panel'); 
-      } else { 
-        document.getElementById('textoErrorFormulario').innerText = respuesta.error;
-        document.getElementById('errorFormulario').classList.remove('hidden');
-      }
-    }
-
-    function abrirModalEliminar(id) {
-      eventoAEliminar = id;
-      const modal = document.getElementById('modalEliminar');
-      const box = document.getElementById('modalBox');
-      modal.classList.remove('hidden');
-      setTimeout(() => {
-        box.classList.remove('scale-95', 'opacity-0');
-        box.classList.add('scale-100', 'opacity-100');
-      }, 10);
-    }
-
-    function cerrarModalEliminar() {
-      eventoAEliminar = null;
-      const modal = document.getElementById('modalEliminar');
-      const box = document.getElementById('modalBox');
-      box.classList.remove('scale-100', 'opacity-100');
-      box.classList.add('scale-95', 'opacity-0');
-      setTimeout(() => modal.classList.add('hidden'), 200);
-    }
-
-    // Guarda el estado reutilizando la acción 'actualizar' que ya existe en su Apps Script
-    async function guardarEstado(id, estado, reprogramacion, reprogramacionHora, motivo) {
-      const ev = todosLosEventos.find(e => e.id === id);
-      if (!ev) return false;
-
-      const fi = new Date(ev.fechaInicio);
-      const ff = new Date(ev.fechaFin);
-      const pad = n => String(n).padStart(2, '0');
-      const infoActual = leerEstado(ev.descripcion);
-
-      const datos = {
-        tipo: ev.tipo || 'Otras',
-        titulo: ev.titulo,
-        fecha: `${fi.getFullYear()}-${pad(fi.getMonth() + 1)}-${pad(fi.getDate())}`,
-        hora: `${pad(fi.getHours())}:${pad(fi.getMinutes())}`,
-        duracion: Math.round((ff - fi) / 60000),
-        descripcion: armarDescripcion(infoActual.descripcionLimpia, estado, reprogramacion, infoActual.telefono, reprogramacionHora, motivo)
-      };
-
-      try {
-        const respuesta = await fetch(API_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'actualizar', id: id, datos: datos })
-        });
-        const res = await respuesta.json();
-        if (res.exito) {
-          cargarDatosDeCalendar();
-          return true;
-        }
-        alert('Error al actualizar el estado: ' + res.error);
-      } catch (error) {
-        alert('Error de conexión');
-      }
-      return false;
-    }
-
-    // Botón ✓ rápido
-    function marcarRealizada(id) {
-      guardarEstado(id, 'realizada', '');
-    }
-
-    // ---------- Ventana "Estado de la reunión" ----------
-    const CLASES_ESTADO_BASE = 'flex flex-col items-center justify-center gap-1 py-3 md:py-2.5 px-1 rounded-xl border-2 text-xs md:text-sm font-bold transition ';
-    const CLASES_ESTADO_ACTIVO = {
-      pendiente: 'border-indigo-500 bg-indigo-50 text-indigo-700',
-      realizada: 'border-emerald-500 bg-emerald-50 text-emerald-700',
-      no_realizada: 'border-red-500 bg-red-50 text-red-700'
-    };
-    const CLASES_ESTADO_INACTIVO = 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50';
-
-    function elegirEstado(estado) {
-      estadoElegido = estado;
-      ['pendiente', 'realizada', 'no_realizada'].forEach(e => {
-        const b = document.getElementById('optEstado-' + e);
-        b.className = CLASES_ESTADO_BASE + (e === estado ? CLASES_ESTADO_ACTIVO[e] : CLASES_ESTADO_INACTIVO);
-      });
-      document.getElementById('camposNoRealizada').classList.toggle('hidden', estado !== 'no_realizada');
-    }
-
-    function abrirModalEstado(id) {
-      const ev = todosLosEventos.find(e => e.id === id);
-      if (!ev) return;
-      eventoEstadoId = id;
-
-      const info = leerEstado(ev.descripcion);
-      document.getElementById('estadoTituloEvento').innerText = ev.titulo;
-      document.getElementById('motivoNoRealizada').value = info.motivo || '';
-      document.getElementById('fechaReprogramacion').value = info.reprogramacion || '';
-      document.getElementById('horaReprogramacion').value = info.reprogramacionHora || '';
-      mostrarDiaSemanaRepro();
-      elegirEstado(info.estado);
-
-      document.getElementById('modalEstado').classList.remove('hidden');
-    }
-
-    function cerrarModalEstado() {
-      eventoEstadoId = null;
-      document.getElementById('modalEstado').classList.add('hidden');
-    }
-
-    async function confirmarEstado() {
-      if (!eventoEstadoId) return;
-
-      let fecha = '', hora = '', motivo = '';
-      if (estadoElegido === 'no_realizada') {
-        motivo = document.getElementById('motivoNoRealizada').value.trim();
-        fecha = document.getElementById('fechaReprogramacion').value;
-        hora = document.getElementById('horaReprogramacion').value;
-
-        if (hora && !fecha) {
-          alert('Indicó una hora, pero falta la nueva fecha. Complete la fecha o borre la hora.');
-          return;
-        }
-      }
-
-      const btn = document.getElementById('btnConfirmarEstado');
-      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-      btn.disabled = true;
-
-      await guardarEstado(eventoEstadoId, estadoElegido, fecha, hora, motivo);
-
-      btn.innerHTML = 'Guardar';
-      btn.disabled = false;
-      cerrarModalEstado();
-    }
-
-    // Abre WhatsApp con el mensaje de la actividad ya escrito
-    function enviarWhatsApp(id) {
-      const ev = todosLosEventos.find(e => e.id === id);
-      if (!ev) return;
-
-      const info = leerEstado(ev.descripcion);
-      const fi = new Date(ev.fechaInicio);
-      const ff = new Date(ev.fechaFin);
-      const fecha = fi.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
-      const horaIni = fi.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
-      const horaFin = ff.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
-
-      let texto = '*' + (ev.tipo || 'Actividad') + '*\n' + ev.titulo +
-                  '\n\n📅 ' + fecha + '\n🕐 ' + horaIni + ' a ' + horaFin;
-
-      if (info.descripcionLimpia) {
-        texto += '\n\n' + info.descripcionLimpia;
-      }
-
-      if (info.estado === 'no_realizada') {
-        texto += '\n\n⚠️ Esta reunión no se realizó.';
-        if (info.motivo) {
-          texto += '\nMotivo: ' + info.motivo + '.';
-        }
-        if (info.reprogramacion) {
-          texto += '\nNueva fecha: ' + formatearReprogramacion(info.reprogramacion, info.reprogramacionHora) + '.';
-        }
-      }
-
-      texto += '\n\nCoordinación UTP - Colegio Marina de Chile';
-
-      const url = info.telefono
-        ? 'https://wa.me/' + info.telefono + '?text=' + encodeURIComponent(texto)
-        : 'https://wa.me/?text=' + encodeURIComponent(texto);
-      window.open(url, '_blank');
-    }
-
-    function guardarConfiguracion() {
-      const nombre = document.getElementById('inputNombreConfig').value;
-      if (nombre.trim() !== '') {
-        localStorage.setItem('coordinacion_nombre', nombre);
-        document.getElementById('nombreUsuario').innerText = nombre;
-      }
-      cambiarSeccion('panel');
-    }
-
-    window.onload = function() {
-      const n = localStorage.getItem('coordinacion_nombre');
-      if (n) {
-        document.getElementById('nombreUsuario').innerText = n;
-        document.getElementById('inputNombreConfig').value = n;
-      } else {
-        document.getElementById('nombreUsuario').innerText = 'Usuario';
-      }
-
-      // Estado del calendario (abierto por defecto)
-      let guardado = null;
-      try { guardado = localStorage.getItem('coordinacion_cal_abierto'); } catch (e) {}
-      aplicarEstadoCalendario(guardado !== '0');
-
-      renderizarNavDia();
-      renderizarCalendario();
-      cargarDatosDeCalendar();
-    };
-  </script>
-</body>
-</html>
+        if (!listaDia[k])
