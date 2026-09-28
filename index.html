@@ -87,10 +87,41 @@
       
       <!-- SECCIÓN: PANEL PRINCIPAL -->
       <section id="panel" class="seccion activa">
-        <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 space-y-3 md:space-y-0">
-          <h3 class="text-xl font-bold text-slate-800">Calendario de Actividades</h3>
-          <div id="cargandoEventos" class="text-sm font-medium text-indigo-600 hidden bg-indigo-50 px-3 py-1 rounded-full">
-            <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Sincronizando...
+        <div class="flex items-center justify-between mb-3 gap-2">
+          <h3 class="text-lg md:text-xl font-bold text-slate-800">Calendario de Actividades</h3>
+          <div class="flex items-center gap-2">
+            <div id="cargandoEventos" class="text-xs md:text-sm font-medium text-indigo-600 hidden bg-indigo-50 px-3 py-1 rounded-full">
+              <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Sincronizando...
+            </div>
+            <button id="btnToggleCal" onclick="alternarCalendario()" class="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-full flex items-center transition">
+              <i class="fa-regular fa-calendar mr-1.5"></i><span id="txtToggleCal">Ocultar</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Calendario compacto (se puede ocultar) -->
+        <div id="bloqueCalendario" class="bg-white rounded-xl shadow-sm border border-slate-200 p-2 md:p-3 mb-4 w-full max-w-sm md:max-w-md mx-auto md:mx-0">
+          <div class="flex items-center justify-between mb-1.5">
+            <button onclick="cambiarMes(-1)" title="Mes anterior" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+            <h3 id="tituloCalendario" class="text-sm md:text-base font-extrabold text-slate-900 font-serif text-center"></h3>
+            <button onclick="cambiarMes(1)" title="Mes siguiente" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+          </div>
+          <div class="flex items-center justify-center gap-4 min-h-[16px] mb-1.5">
+            <button id="btnHoyCalendario" onclick="irAHoy()" class="hidden text-[11px] font-bold text-indigo-600 hover:underline">Ir a hoy</button>
+            <button id="btnVerTodoMes" onclick="seleccionarDia(null)" class="hidden text-[11px] font-bold text-indigo-600 hover:underline">Quitar filtro de día</button>
+          </div>
+          <div class="border border-slate-300 rounded-lg overflow-hidden">
+            <div class="grid grid-cols-7 bg-[#b91c2f] text-white text-[9px] md:text-[11px] font-semibold text-center">
+              <div class="py-1">Lun</div><div class="py-1">Mar</div><div class="py-1">Mié</div><div class="py-1">Jue</div><div class="py-1">Vie</div><div class="py-1">Sáb</div><div class="py-1">Dom</div>
+            </div>
+            <div id="gridCalendario" class="grid grid-cols-7 gap-px bg-slate-300"></div>
+          </div>
+          <div id="feriadosMes" class="mt-2"></div>
+          <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[10px] text-slate-500">
+            <span class="flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500 mr-1"></span> Pendiente</span>
+            <span class="flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1"></span> Realizada</span>
+            <span class="flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-red-500 mr-1"></span> No realizada</span>
+            <span class="flex items-center"><span class="w-2.5 h-2.5 rounded bg-red-100 border border-red-300 mr-1"></span> Feriado</span>
           </div>
         </div>
         
@@ -115,37 +146,6 @@
 
         <p id="tituloRangoFechas" class="text-xs md:text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">MOSTRANDO ACTIVIDADES DE HOY</p>
         <div id="listaEventos" class="space-y-4"></div>
-
-        <!-- Calendario mensual -->
-        <div class="mt-10 bg-white rounded-2xl shadow-sm border border-slate-200 p-3 md:p-6">
-          <div class="flex items-center justify-between mb-3">
-            <button onclick="cambiarMes(-1)" title="Mes anterior" class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-left"></i></button>
-            <h3 id="tituloCalendario" class="text-xl md:text-3xl font-extrabold text-slate-900 font-serif text-center"></h3>
-            <button onclick="cambiarMes(1)" title="Mes siguiente" class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-right"></i></button>
-          </div>
-          <div class="flex items-center justify-center gap-4 mb-3 min-h-[20px]">
-            <button id="btnHoyCalendario" onclick="irAHoy()" class="hidden text-xs font-bold text-indigo-600 hover:underline">Ir a hoy</button>
-            <button id="btnVerTodoMes" onclick="seleccionarDia(null)" class="hidden text-xs font-bold text-indigo-600 hover:underline">Quitar filtro de día</button>
-          </div>
-          <div class="border border-slate-300 rounded-lg overflow-hidden">
-            <div class="grid grid-cols-7 bg-[#b91c2f] text-white text-[10px] md:text-sm font-semibold text-center">
-              <div class="py-2"><span class="hidden md:inline">Lunes</span><span class="md:hidden">Lun</span></div>
-              <div class="py-2"><span class="hidden md:inline">Martes</span><span class="md:hidden">Mar</span></div>
-              <div class="py-2"><span class="hidden md:inline">Miércoles</span><span class="md:hidden">Mié</span></div>
-              <div class="py-2"><span class="hidden md:inline">Jueves</span><span class="md:hidden">Jue</span></div>
-              <div class="py-2"><span class="hidden md:inline">Viernes</span><span class="md:hidden">Vie</span></div>
-              <div class="py-2"><span class="hidden md:inline">Sábado</span><span class="md:hidden">Sáb</span></div>
-              <div class="py-2"><span class="hidden md:inline">Domingo</span><span class="md:hidden">Dom</span></div>
-            </div>
-            <div id="gridCalendario" class="grid grid-cols-7 gap-px bg-slate-300"></div>
-          </div>
-          <div class="flex flex-wrap gap-4 mt-4 text-xs text-slate-500">
-            <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-indigo-500 mr-1.5"></span> Pendiente</span>
-            <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span> Realizada</span>
-            <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-red-500 mr-1.5"></span> No realizada</span>
-            <span class="flex items-center"><span class="w-3 h-3 rounded bg-red-100 border border-red-300 mr-1.5"></span> Feriado</span>
-          </div>
-        </div>
       </section>
 
       <!-- SECCIÓN: FORMULARIO -->
@@ -265,10 +265,15 @@
 
   <!-- Modal No Realizada / Reprogramación -->
   <div id="modalNoRealizada" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[60] flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl">
+    <div class="bg-white rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4"><i class="fa-solid fa-calendar-xmark"></i></div>
       <h3 class="text-xl font-bold text-center text-slate-800 mb-2">Reunión no realizada</h3>
-      <p class="text-center text-slate-500 mb-5 text-sm">Si lo desea, indique la nueva fecha y hora en que se reprogramará. Puede dejarlas en blanco.</p>
+      <p class="text-center text-slate-500 mb-5 text-sm">Indique brevemente el motivo. Si lo desea, indique también la nueva fecha y hora en que se reprogramará.</p>
+
+      <label class="block text-sm font-bold text-slate-700 mb-2">Motivo (breve)</label>
+      <input type="text" id="motivoNoRealizada" maxlength="120" placeholder="Ej. El apoderado no pudo asistir" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
+      <p class="text-xs text-slate-400 mt-1 mb-4">Máximo 120 caracteres.</p>
+
       <label class="block text-sm font-bold text-slate-700 mb-2">Nueva fecha (opcional)</label>
       <input type="date" id="fechaReprogramacion" onchange="mostrarDiaSemanaRepro()" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm mb-1">
       <p id="diaSemanaRepro" class="text-xs font-bold text-indigo-600 mb-4 min-h-[16px]"></p>
@@ -438,24 +443,44 @@
       aplicarFiltro(vistaActual);
     }
 
+    // Muestra u oculta el calendario (y recuerda la elección)
+    function aplicarEstadoCalendario(abierto) {
+      document.getElementById('bloqueCalendario').classList.toggle('hidden', !abierto);
+      document.getElementById('txtToggleCal').innerText = abierto ? 'Ocultar' : 'Mostrar';
+    }
+
+    function alternarCalendario() {
+      const abrir = document.getElementById('bloqueCalendario').classList.contains('hidden');
+      aplicarEstadoCalendario(abrir);
+      try { localStorage.setItem('coordinacion_cal_abierto', abrir ? '1' : '0'); } catch (e) {}
+    }
+
     // Marcas guardadas dentro de la descripción del evento
     const MARCA_ESTADO = /\[\[ESTADO:(realizada|no_realizada)(?:\|REPROG:(\d{4}-\d{2}-\d{2})(?:T(\d{2}:\d{2}))?)?\]\]/;
+    const MARCA_MOTIVO = /\[\[MOTIVO:([^\]]*)\]\]/;
     const MARCA_TEL = /\[\[TEL:(\d+)\]\]/;
 
     function leerEstado(descripcion) {
       const texto = descripcion || '';
       const m = texto.match(MARCA_ESTADO);
+      const mo = texto.match(MARCA_MOTIVO);
       const t = texto.match(MARCA_TEL);
       return {
         estado: m ? m[1] : 'pendiente',
         reprogramacion: m && m[2] ? m[2] : '',
         reprogramacionHora: m && m[3] ? m[3] : '',
+        motivo: mo ? mo[1].trim() : '',
         telefono: t ? t[1] : '',
-        descripcionLimpia: texto.replace(MARCA_ESTADO, '').replace(MARCA_TEL, '').trim()
+        descripcionLimpia: texto.replace(MARCA_ESTADO, '').replace(MARCA_MOTIVO, '').replace(MARCA_TEL, '').trim()
       };
     }
 
-    function armarDescripcion(descripcionLimpia, estado, reprogramacion, telefono, reprogramacionHora) {
+    // Quita corchetes y saltos de línea del motivo para no romper la marca
+    function limpiarMotivo(m) {
+      return String(m || '').replace(/[\[\]\r\n]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120);
+    }
+
+    function armarDescripcion(descripcionLimpia, estado, reprogramacion, telefono, reprogramacionHora, motivo) {
       const partes = [];
       if (descripcionLimpia) partes.push(descripcionLimpia);
       if (estado === 'realizada') {
@@ -466,6 +491,8 @@
           repro = '|REPROG:' + reprogramacion + (reprogramacionHora ? 'T' + reprogramacionHora : '');
         }
         partes.push('[[ESTADO:no_realizada' + repro + ']]');
+        const mot = limpiarMotivo(motivo);
+        if (mot) partes.push('[[MOTIVO:' + mot + ']]');
       }
       if (telefono) partes.push('[[TEL:' + telefono + ']]');
       return partes.join('\n');
@@ -473,6 +500,15 @@
 
     function estadoDe(ev) {
       return leerEstado(ev.descripcion).estado;
+    }
+
+    // Evita que un texto escrito por el usuario se interprete como HTML
+    function escaparHtml(t) {
+      return String(t || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function capitalizar(t) {
+      return t.charAt(0).toUpperCase() + t.slice(1);
     }
 
     // Clave de día en hora local: AAAA-MM-DD
@@ -483,7 +519,7 @@
     // Ejemplo: "Lunes 28 de septiembre"
     function nombreDia(d) {
       const t = d.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' }).replace(',', '');
-      return t.charAt(0).toUpperCase() + t.slice(1);
+      return capitalizar(t);
     }
 
     // Deja solo dígitos. Un celular chileno de 9 dígitos que parte con 9 recibe el 56.
@@ -597,7 +633,7 @@
       const eventoExistente = id ? todosLosEventos.find(e => e.id === id) : null;
       const estadoPrevio = eventoExistente
         ? leerEstado(eventoExistente.descripcion)
-        : { estado: 'pendiente', reprogramacion: '', reprogramacionHora: '' };
+        : { estado: 'pendiente', reprogramacion: '', reprogramacionHora: '', motivo: '' };
       const datos = {
         tipo: document.getElementById('tipoActividad').value,
         titulo: document.getElementById('titulo').value,
@@ -610,7 +646,8 @@
           estadoPrevio.estado,
           estadoPrevio.reprogramacion,
           normalizarTelefono(document.getElementById('telefono').value),
-          estadoPrevio.reprogramacionHora
+          estadoPrevio.reprogramacionHora,
+          estadoPrevio.motivo
         )
       };
 
@@ -746,7 +783,7 @@
       aplicarFiltro(vistaActual);
     }
 
-    // Calendario mensual (muestra el mes elegido; los días de otros meses quedan en blanco)
+    // Calendario mensual compacto (los días de otros meses quedan en blanco)
     function renderizarCalendario() {
       const hoy = new Date();
       const hoyClave = claveDia(hoy);
@@ -769,13 +806,14 @@
       const diasEnMes = new Date(anio, mes + 1, 0).getDate();
       const primerDia = (new Date(anio, mes, 1).getDay() + 6) % 7; // lunes = 0
       const totalCeldas = Math.ceil((primerDia + diasEnMes) / 7) * 7;
+      const feriadosMes = [];
 
       let html = '';
       for (let i = 0; i < totalCeldas; i++) {
         const d = i - primerDia + 1;
 
         if (d < 1 || d > diasEnMes) {
-          html += '<div class="bg-slate-100 min-h-[56px] md:min-h-[84px]"></div>';
+          html += '<div class="bg-slate-100 min-h-[34px] md:min-h-[44px]"></div>';
           continue;
         }
 
@@ -786,13 +824,13 @@
         const esSel = k === diaSeleccionado;
         const finDeSemana = fecha.getDay() === 0 || fecha.getDay() === 6;
         const nombreFeriado = feriadoDe(fecha);
-        const total = info ? info.pendiente + info.realizada + info.no_realizada : 0;
+        if (nombreFeriado) feriadosMes.push({ k: k, d: d, dow: fecha.getDay(), nombre: nombreFeriado });
 
         let puntos = '';
         if (info) {
-          if (info.pendiente) puntos += '<span class="w-2 h-2 rounded-full bg-indigo-500"></span>';
-          if (info.realizada) puntos += '<span class="w-2 h-2 rounded-full bg-emerald-500"></span>';
-          if (info.no_realizada) puntos += '<span class="w-2 h-2 rounded-full bg-red-500"></span>';
+          if (info.pendiente) puntos += '<span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>';
+          if (info.realizada) puntos += '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>';
+          if (info.no_realizada) puntos += '<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>';
         }
 
         const fondo = esSel
@@ -803,18 +841,28 @@
           : ((finDeSemana || nombreFeriado) ? 'text-red-600 font-medium' : 'text-slate-800 font-medium');
 
         html += `
-          <button onclick="seleccionarDia('${k}')" class="min-h-[56px] md:min-h-[84px] p-1 md:p-2 flex flex-col items-start justify-start text-left transition ${fondo}">
-            <span class="flex items-baseline gap-1">
-              <span class="text-base md:text-2xl ${colorNumero}">${d}</span>
-              <span class="text-[9px] md:text-[10px] uppercase font-bold ${esHoy ? 'text-indigo-600' : 'text-slate-400'}">${DIAS_CORTOS[fecha.getDay()]}</span>
+          <button onclick="seleccionarDia('${k}')" title="${nombreFeriado ? 'Feriado: ' + nombreFeriado : ''}" class="min-h-[34px] md:min-h-[44px] p-0.5 md:p-1 flex flex-col items-center md:items-start justify-start transition ${fondo}">
+            <span class="flex items-baseline gap-0.5">
+              <span class="text-xs md:text-sm ${colorNumero}">${d}</span>
+              <span class="hidden md:inline text-[8px] uppercase font-bold ${esHoy ? 'text-indigo-600' : 'text-slate-400'}">${DIAS_CORTOS[fecha.getDay()]}</span>
             </span>
-            ${nombreFeriado ? `<span class="w-full mt-0.5 text-[9px] md:text-[10px] font-bold text-red-600 leading-tight md:truncate" title="${nombreFeriado}"><span class="md:hidden">Feriado</span><span class="hidden md:inline">${nombreFeriado}</span></span>` : ''}
-            <span class="flex gap-1 mt-1">${puntos}</span>
-            ${total ? `<span class="hidden md:block text-[10px] text-slate-500 mt-1">${total} act.</span>` : ''}
+            <span class="flex gap-0.5 mt-0.5">${puntos}</span>
           </button>`;
       }
 
       document.getElementById('gridCalendario').innerHTML = html;
+
+      // Lista de feriados del mes (los nombres no caben en las casillas)
+      const contFer = document.getElementById('feriadosMes');
+      if (feriadosMes.length === 0) {
+        contFer.innerHTML = '';
+      } else {
+        contFer.innerHTML =
+          '<p class="text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-0.5">Feriados del mes</p>' +
+          feriadosMes.map(f =>
+            `<button onclick="seleccionarDia('${f.k}')" class="block w-full text-left text-[11px] md:text-xs text-red-700 hover:underline"><span class="font-bold">${capitalizar(DIAS_CORTOS[f.dow])} ${f.d}</span> · ${f.nombre}</button>`
+          ).join('');
+      }
     }
 
     function renderizarLista(eventos) {
@@ -888,6 +936,7 @@
                   <span class="flex items-center font-bold text-slate-700"><i class="fa-regular fa-calendar text-slate-400 mr-1.5"></i> ${textoDia}</span>
                   <span class="flex items-center font-medium mt-0.5"><i class="fa-regular fa-clock text-slate-400 mr-1.5"></i> ${horaInicioStr} - ${horaFinStr}</span>
                   ${info.telefono ? `<span class="flex items-center font-medium mt-0.5"><i class="fa-solid fa-phone text-slate-400 mr-1.5"></i> +${info.telefono}</span>` : ''}
+                  ${info.estado === 'no_realizada' && info.motivo ? `<p class="mt-1.5 text-xs md:text-sm text-red-700 break-words"><span class="font-bold">Motivo:</span> ${escaparHtml(info.motivo)}</p>` : ''}
                   ${info.descripcionLimpia ? `<p class="mt-2 text-xs md:text-sm text-slate-600 whitespace-pre-line break-words">${info.descripcionLimpia}</p>` : ''}
                 </div>
               </div>
@@ -990,7 +1039,7 @@
     }
 
     // Guarda el estado reutilizando la acción 'actualizar' que ya existe en su Apps Script
-    async function guardarEstado(id, estado, reprogramacion, reprogramacionHora) {
+    async function guardarEstado(id, estado, reprogramacion, reprogramacionHora, motivo) {
       const ev = todosLosEventos.find(e => e.id === id);
       if (!ev) return false;
 
@@ -1005,7 +1054,7 @@
         fecha: `${fi.getFullYear()}-${pad(fi.getMonth() + 1)}-${pad(fi.getDate())}`,
         hora: `${pad(fi.getHours())}:${pad(fi.getMinutes())}`,
         duracion: Math.round((ff - fi) / 60000),
-        descripcion: armarDescripcion(infoActual.descripcionLimpia, estado, reprogramacion, infoActual.telefono, reprogramacionHora)
+        descripcion: armarDescripcion(infoActual.descripcionLimpia, estado, reprogramacion, infoActual.telefono, reprogramacionHora, motivo)
       };
 
       try {
@@ -1036,7 +1085,8 @@
     function abrirModalNoRealizada(id) {
       eventoNoRealizadaId = id;
       const ev = todosLosEventos.find(e => e.id === id);
-      const info = ev ? leerEstado(ev.descripcion) : { reprogramacion: '', reprogramacionHora: '' };
+      const info = ev ? leerEstado(ev.descripcion) : { reprogramacion: '', reprogramacionHora: '', motivo: '' };
+      document.getElementById('motivoNoRealizada').value = info.motivo || '';
       document.getElementById('fechaReprogramacion').value = info.reprogramacion || '';
       document.getElementById('horaReprogramacion').value = info.reprogramacionHora || '';
       mostrarDiaSemanaRepro();
@@ -1051,6 +1101,7 @@
     async function confirmarNoRealizada() {
       if (!eventoNoRealizadaId) return;
 
+      const motivo = document.getElementById('motivoNoRealizada').value.trim();
       const fecha = document.getElementById('fechaReprogramacion').value;
       const hora = document.getElementById('horaReprogramacion').value;
 
@@ -1063,7 +1114,7 @@
       btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
       btn.disabled = true;
 
-      await guardarEstado(eventoNoRealizadaId, 'no_realizada', fecha, hora);
+      await guardarEstado(eventoNoRealizadaId, 'no_realizada', fecha, hora, motivo);
 
       btn.innerHTML = 'Guardar';
       btn.disabled = false;
@@ -1091,8 +1142,11 @@
 
       if (info.estado === 'no_realizada') {
         texto += '\n\n⚠️ Esta reunión no se realizó.';
+        if (info.motivo) {
+          texto += '\nMotivo: ' + info.motivo + '.';
+        }
         if (info.reprogramacion) {
-          texto += ' Nueva fecha: ' + formatearReprogramacion(info.reprogramacion, info.reprogramacionHora) + '.';
+          texto += '\nNueva fecha: ' + formatearReprogramacion(info.reprogramacion, info.reprogramacionHora) + '.';
         }
       }
 
@@ -1121,6 +1175,12 @@
       } else {
         document.getElementById('nombreUsuario').innerText = 'Usuario';
       }
+
+      // Estado del calendario (abierto por defecto)
+      let guardado = null;
+      try { guardado = localStorage.getItem('coordinacion_cal_abierto'); } catch (e) {}
+      aplicarEstadoCalendario(guardado !== '0');
+
       renderizarNavDia();
       renderizarCalendario();
       cargarDatosDeCalendar();
