@@ -105,16 +105,29 @@
         <p id="tituloRangoFechas" class="text-xs md:text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">MOSTRANDO ACTIVIDADES DE HOY</p>
         <div id="listaEventos" class="space-y-4"></div>
 
-        <!-- Calendario del mes actual -->
-        <div class="mt-10 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6">
-          <div class="flex items-center justify-between mb-4">
-            <h3 id="tituloCalendario" class="text-lg md:text-xl font-bold text-slate-800"></h3>
+        <!-- Calendario mensual -->
+        <div class="mt-10 bg-white rounded-2xl shadow-sm border border-slate-200 p-3 md:p-6">
+          <div class="flex items-center justify-between mb-3">
+            <button onclick="cambiarMes(-1)" title="Mes anterior" class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-left"></i></button>
+            <h3 id="tituloCalendario" class="text-xl md:text-3xl font-extrabold text-slate-900 font-serif text-center"></h3>
+            <button onclick="cambiarMes(1)" title="Mes siguiente" class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+          <div class="flex items-center justify-center gap-4 mb-3 min-h-[20px]">
+            <button id="btnHoyCalendario" onclick="irAHoy()" class="hidden text-xs font-bold text-indigo-600 hover:underline">Ir a hoy</button>
             <button id="btnVerTodoMes" onclick="seleccionarDia(null)" class="hidden text-xs font-bold text-indigo-600 hover:underline">Quitar filtro de día</button>
           </div>
-          <div class="grid grid-cols-7 gap-1 md:gap-2 text-center text-[10px] md:text-xs font-bold text-slate-400 uppercase mb-2">
-            <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
+          <div class="border border-slate-300 rounded-lg overflow-hidden">
+            <div class="grid grid-cols-7 bg-[#b91c2f] text-white text-[10px] md:text-sm font-semibold text-center">
+              <div class="py-2"><span class="hidden md:inline">Lunes</span><span class="md:hidden">Lun</span></div>
+              <div class="py-2"><span class="hidden md:inline">Martes</span><span class="md:hidden">Mar</span></div>
+              <div class="py-2"><span class="hidden md:inline">Miércoles</span><span class="md:hidden">Mié</span></div>
+              <div class="py-2"><span class="hidden md:inline">Jueves</span><span class="md:hidden">Jue</span></div>
+              <div class="py-2"><span class="hidden md:inline">Viernes</span><span class="md:hidden">Vie</span></div>
+              <div class="py-2"><span class="hidden md:inline">Sábado</span><span class="md:hidden">Sáb</span></div>
+              <div class="py-2"><span class="hidden md:inline">Domingo</span><span class="md:hidden">Dom</span></div>
+            </div>
+            <div id="gridCalendario" class="grid grid-cols-7 gap-px bg-slate-300"></div>
           </div>
-          <div id="gridCalendario" class="grid grid-cols-7 gap-1 md:gap-2"></div>
           <div class="flex flex-wrap gap-4 mt-4 text-xs text-slate-500">
             <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-indigo-500 mr-1.5"></span> Pendiente</span>
             <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span> Realizada</span>
@@ -260,10 +273,31 @@
     let todosLosEventos = [];
     let vistaActual = 'hoy';
     let diaSeleccionado = null;
+    let mesVisible = { anio: new Date().getFullYear(), mes: new Date().getMonth() };
+    const DIAS_CORTOS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
     let eventoAEliminar = null;
     let eventoNoRealizadaId = null;
 
     const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+    // Avanza (+1) o retrocede (-1) un mes en el calendario
+    function cambiarMes(delta) {
+      let m = mesVisible.mes + delta;
+      let a = mesVisible.anio;
+      if (m < 0) { m = 11; a--; }
+      if (m > 11) { m = 0; a++; }
+      mesVisible = { anio: a, mes: m };
+      diaSeleccionado = null;
+      aplicarFiltro(vistaActual);
+    }
+
+    // Vuelve al mes actual
+    function irAHoy() {
+      const h = new Date();
+      mesVisible = { anio: h.getFullYear(), mes: h.getMonth() };
+      diaSeleccionado = null;
+      aplicarFiltro(vistaActual);
+    }
 
     // Marcas guardadas dentro de la descripción del evento
     const MARCA_ESTADO = /\[\[ESTADO:(realizada|no_realizada)(?:\|REPROG:(\d{4}-\d{2}-\d{2}))?\]\]/;
@@ -458,6 +492,7 @@
     function filtrarVista(vista, btnElement) {
       vistaActual = vista;
       diaSeleccionado = null;
+      mesVisible = { anio: new Date().getFullYear(), mes: new Date().getMonth() };
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('active', 'bg-indigo-600', 'text-white', 'shadow-md');
         btn.classList.add('text-slate-600', 'hover:bg-slate-50');
@@ -535,14 +570,16 @@
       aplicarFiltro(vistaActual);
     }
 
-    // Calendario del mes actual (sin días de otros meses)
+    // Calendario mensual (muestra el mes elegido; los días de otros meses quedan en blanco)
     function renderizarCalendario() {
       const hoy = new Date();
-      const anio = hoy.getFullYear();
-      const mes = hoy.getMonth();
+      const hoyClave = claveDia(hoy);
+      const anio = mesVisible.anio;
+      const mes = mesVisible.mes;
 
       document.getElementById('tituloCalendario').innerText = MESES[mes] + ' ' + anio;
       document.getElementById('btnVerTodoMes').classList.toggle('hidden', !diaSeleccionado);
+      document.getElementById('btnHoyCalendario').classList.toggle('hidden', anio === hoy.getFullYear() && mes === hoy.getMonth());
 
       const porDia = {};
       todosLosEventos.forEach(ev => {
@@ -555,16 +592,23 @@
 
       const diasEnMes = new Date(anio, mes + 1, 0).getDate();
       const primerDia = (new Date(anio, mes, 1).getDay() + 6) % 7; // lunes = 0
-      const hoyClave = claveDia(hoy);
+      const totalCeldas = Math.ceil((primerDia + diasEnMes) / 7) * 7;
 
       let html = '';
-      for (let i = 0; i < primerDia; i++) html += '<div></div>';
+      for (let i = 0; i < totalCeldas; i++) {
+        const d = i - primerDia + 1;
 
-      for (let d = 1; d <= diasEnMes; d++) {
-        const k = anio + '-' + String(mes + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+        if (d < 1 || d > diasEnMes) {
+          html += '<div class="bg-slate-100 min-h-[56px] md:min-h-[84px]"></div>';
+          continue;
+        }
+
+        const fecha = new Date(anio, mes, d);
+        const k = claveDia(fecha);
         const info = porDia[k];
         const esHoy = k === hoyClave;
         const esSel = k === diaSeleccionado;
+        const finDeSemana = fecha.getDay() === 0 || fecha.getDay() === 6;
         const total = info ? info.pendiente + info.realizada + info.no_realizada : 0;
 
         let puntos = '';
@@ -574,13 +618,17 @@
           if (info.no_realizada) puntos += '<span class="w-2 h-2 rounded-full bg-red-500"></span>';
         }
 
-        const claseCelda = esSel
-          ? 'border-indigo-600 ring-2 ring-indigo-300 bg-indigo-50'
-          : (esHoy ? 'border-indigo-400 bg-indigo-50' : 'border-slate-200 bg-white hover:bg-slate-50');
+        const fondo = esSel
+          ? 'bg-indigo-50 ring-2 ring-inset ring-indigo-500'
+          : (esHoy ? 'bg-indigo-50' : 'bg-white hover:bg-slate-50');
+        const colorNumero = esHoy ? 'text-indigo-700 font-extrabold' : (finDeSemana ? 'text-red-600 font-medium' : 'text-slate-800 font-medium');
 
         html += `
-          <button onclick="seleccionarDia('${k}')" class="min-h-[52px] md:min-h-[72px] rounded-xl border p-1 md:p-2 flex flex-col items-center justify-start transition ${claseCelda}">
-            <span class="text-xs md:text-sm font-bold ${esHoy ? 'text-indigo-700' : 'text-slate-700'}">${d}</span>
+          <button onclick="seleccionarDia('${k}')" class="min-h-[56px] md:min-h-[84px] p-1 md:p-2 flex flex-col items-start justify-start text-left transition ${fondo}">
+            <span class="flex items-baseline gap-1">
+              <span class="text-base md:text-2xl ${colorNumero}">${d}</span>
+              <span class="text-[9px] md:text-[10px] uppercase font-bold ${esHoy ? 'text-indigo-600' : 'text-slate-400'}">${DIAS_CORTOS[fecha.getDay()]}</span>
+            </span>
             <span class="flex gap-1 mt-1">${puntos}</span>
             ${total ? `<span class="hidden md:block text-[10px] text-slate-500 mt-1">${total} act.</span>` : ''}
           </button>`;
