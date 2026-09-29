@@ -223,7 +223,8 @@ body{font-family:Inter,system-ui,sans-serif;background:#f8fafc}
   <input type="date" id="fechaReprogramacion" onchange="diaRepro()" class="in mb-1">
   <p id="diaSemanaRepro" class="text-xs font-bold text-indigo-600 mb-4 min-h-[16px]"></p>
   <label class="lb">Nueva hora (opcional)</label>
-  <input type="time" id="horaReprogramacion" class="in mb-4">
+  <input type="time" id="horaReprogramacion" class="in mb-1">
+  <p class="text-xs text-slate-500 mb-4">Si indica una nueva fecha, la actividad también se agendará en esa fecha para que vuelva a aparecer en su agenda (con la misma hora, si no indica otra).</p>
  </div>
  <div class="flex gap-3 mt-2"><button class="bt" onclick="ocultar('mEstado')">Cancelar</button><button id="btnConfirmarEstado" class="bt p" onclick="confirmarEstado()">Guardar</button></div>
 </div></div>
@@ -277,14 +278,16 @@ const mostrar=id=>$(id).classList.remove('h'),ocultar=id=>$(id).classList.add('h
 function telNorm(t){let d=(t||'').replace(/\D/g,'');if(d.length===9&&d.startsWith('9'))d='56'+d;return d;}
 
 /* ---------- Marcas guardadas en la descripción del evento ---------- */
-const RE_E=/\[\[ESTADO:(realizada|no_realizada)(?:\|REPROG:(\d{4}-\d{2}-\d{2})(?:T(\d{2}:\d{2}))?)?\]\]/,RE_M=/\[\[MOTIVO:([^\]]*)\]\]/,RE_T=/\[\[TEL:(\d+)\]\]/;
-function leer(d){const t=d||'',e=t.match(RE_E),m=t.match(RE_M),p=t.match(RE_T);
- return{estado:e?e[1]:'pendiente',repro:(e&&e[2])||'',reproHora:(e&&e[3])||'',motivo:m?m[1].trim():'',tel:p?p[1]:'',desc:t.replace(RE_E,'').replace(RE_M,'').replace(RE_T,'').trim()};}
-function armar(desc,estado,repro,tel,hora,motivo){const a=[];if(desc)a.push(desc);
+const RE_E=/\[\[ESTADO:(realizada|no_realizada)(?:\|REPROG:(\d{4}-\d{2}-\d{2})(?:T(\d{2}:\d{2}))?)?\]\]/,RE_M=/\[\[MOTIVO:([^\]]*)\]\]/,RE_T=/\[\[TEL:(\d+)\]\]/,RE_O=/\[\[ORIGEN:([^\]]+)\]\]/;
+function leer(d){const t=d||'',e=t.match(RE_E),m=t.match(RE_M),p=t.match(RE_T),o=t.match(RE_O);
+ return{estado:e?e[1]:'pendiente',repro:(e&&e[2])||'',reproHora:(e&&e[3])||'',motivo:m?m[1].trim():'',tel:p?p[1]:'',origen:o?o[1].trim():'',desc:t.replace(RE_E,'').replace(RE_M,'').replace(RE_T,'').replace(RE_O,'').trim()};}
+function armar(desc,estado,repro,tel,hora,motivo,origen){const a=[];if(desc)a.push(desc);
  if(estado==='realizada')a.push('[[ESTADO:realizada]]');
  else if(estado==='no_realizada'){a.push('[[ESTADO:no_realizada'+(repro?'|REPROG:'+repro+(hora?'T'+hora:''):'')+']]');
   const mo=String(motivo||'').replace(/[\[\]\r\n]+/g,' ').replace(/\s+/g,' ').trim().slice(0,120);if(mo)a.push('[[MOTIVO:'+mo+']]');}
- if(tel)a.push('[[TEL:'+tel+']]');return a.join('\n');}
+ if(tel)a.push('[[TEL:'+tel+']]');
+ if(origen)a.push('[[ORIGEN:'+origen+']]');
+ return a.join('\n');}
 const estadoDe=e=>leer(e.descripcion).estado;
 
 /* ---------- Feriados de Chile (según la ley vigente; sin feriados regionales) ---------- */
@@ -381,12 +384,14 @@ function lista(ev){
   const a=new Date(e.fechaInicio),b=new Date(e.fechaFin),i=leer(e.descripcion),tp=TIPOS[e.tipo]||TIPOS.Otras,col=tp[0],f=feriado(a);
   const k=i.estado==='pendiente'&&b<new Date()?'porReg':i.estado,cl=EST[k][0],ic=EST[k][1],et=EST[k][2];
   const id=e.id;
+  const og=i.origen?todos.find(x=>x.id===i.origen):null,io=og?leer(og.descripcion):null;
   return '<div class="group flex flex-col md:flex-row md:items-center justify-between p-4 md:p-5 bg-white rounded-2xl border border-slate-200 border-l-4 border-l-'+col+'-500 shadow-sm">'+
   '<div class="flex items-start gap-4 w-full">'+
    '<div class="flex flex-col items-center justify-center bg-'+col+'-100 text-'+col+'-700 w-14 h-14 rounded-xl flex-shrink-0"><span class="text-[10px] font-bold uppercase">'+MC[a.getMonth()]+'</span><span class="text-xl font-extrabold leading-none">'+a.getDate()+'</span></div>'+
    '<div class="flex-1 min-w-0"><div class="flex flex-wrap items-center gap-2 mb-1">'+
     '<span class="bd bg-'+col+'-100 text-'+col+'-700 border-'+col+'-200"><i class="fa-solid '+tp[1]+' mr-1.5"></i>'+(e.tipo||'Otras')+'</span>'+
     '<button onclick="abrirEstado(\''+id+'\')" title="Cambiar estado" class="bd '+cl+'"><i class="fa-solid '+ic+' mr-1.5"></i>'+et+(k==='no_realizada'&&i.repro?' · Reprogramada para el '+fr(i.repro,i.reproHora):'')+' <i class="fa-solid fa-pen ml-1.5 opacity-60" style="font-size:9px"></i></button>'+
+    (i.origen?'<span class="bd bg-amber-50 text-amber-700 border-amber-200"><i class="fa-solid fa-rotate mr-1.5"></i>Reprogramada'+(og?' desde el '+nd(new Date(og.fechaInicio)):'')+'</span>':'')+
     (f?'<span class="bd bg-red-50 text-red-700 border-red-200"><i class="fa-solid fa-flag mr-1.5"></i>Feriado: '+f+'</span>':'')+'</div>'+
     '<h4 class="text-base md:text-lg font-bold break-words">'+esc(e.titulo)+'</h4>'+
     '<div class="text-sm text-slate-500 mt-1">'+
@@ -394,6 +399,7 @@ function lista(ev){
      '<p><i class="fa-regular fa-clock mr-1.5"></i>'+hm(a)+' - '+hm(b)+'</p>'+
      (i.tel?'<p><i class="fa-solid fa-phone mr-1.5"></i>+'+i.tel+'</p>':'')+
      (k==='no_realizada'&&i.motivo?'<p class="mt-1 text-red-700 break-words"><b>Motivo:</b> '+esc(i.motivo)+'</p>':'')+
+     (i.origen&&io&&io.motivo?'<p class="mt-1 text-amber-700 break-words"><b>Motivo de la postergación:</b> '+esc(io.motivo)+'</p>':'')+
      (i.desc?'<p class="mt-2 text-slate-600 whitespace-pre-line break-words">'+esc(i.desc)+'</p>':'')+
     '</div></div></div>'+
   '<div class="ac flex gap-2 justify-end mt-4 md:mt-0 pt-3 md:pt-0 border-t md:border-0 border-slate-100 md:opacity-0 group-hover:opacity-100 md:pl-4">'+
@@ -417,9 +423,9 @@ function editar(id){const e=todos.find(x=>x.id===id);if(!e)return;const a=new Da
  $('titulo').value=e.titulo;$('fecha').value=ck(a);$('hora').value=hm(a);$('duracion').value=Math.round((b-a)/60000);$('descripcion').value=i.desc;$('telefono').value=i.tel;diaForm();
  $('tituloFormulario').innerText='Editar Actividad';$('btnGuardar').innerText='Actualizar Actividad';$('errorFormulario').classList.add('hidden');ir('actividades');}
 async function guardar(ev){ev.preventDefault();const b=$('btnGuardar'),t=b.innerText;b.innerHTML='<i class="fa-solid fa-circle-notch fa-spin"></i>';b.disabled=true;$('errorFormulario').classList.add('hidden');
- const id=$('eventoId').value,ex=id?todos.find(x=>x.id===id):null,pv=ex?leer(ex.descripcion):{estado:'pendiente',repro:'',reproHora:'',motivo:''};
+ const id=$('eventoId').value,ex=id?todos.find(x=>x.id===id):null,pv=ex?leer(ex.descripcion):{estado:'pendiente',repro:'',reproHora:'',motivo:'',origen:''};
  const datos={tipo:$('tipoActividad').value,titulo:$('titulo').value,fecha:$('fecha').value,hora:$('hora').value,duracion:$('duracion').value,alarma:$('alarma').value,
-  descripcion:armar($('descripcion').value.trim(),pv.estado,pv.repro,telNorm($('telefono').value),pv.reproHora,pv.motivo)};
+  descripcion:armar($('descripcion').value.trim(),pv.estado,pv.repro,telNorm($('telefono').value),pv.reproHora,pv.motivo,pv.origen)};
  let r;try{r=await post({action:id?'actualizar':'crear',id:id,datos:datos});}catch(x){r={exito:false,error:'Error de conexión'};}
  b.innerHTML=t;b.disabled=false;
  if(r.exito)ir('panel');else{$('textoErrorFormulario').innerText=r.error;$('errorFormulario').classList.remove('hidden');}}
@@ -432,10 +438,35 @@ async function ejecutarEliminar(){if(!idElim)return;const b=$('btnConfirmarElimi
  catch(x){b.innerHTML='Eliminar';b.disabled=false;alert('Error de conexión');}}
 
 /* ---------- Estado de la reunión ---------- */
-async function guardarEstado(id,estado,repro,hora,motivo){const e=todos.find(x=>x.id===id);if(!e)return;
- const a=new Date(e.fechaInicio),b=new Date(e.fechaFin),c=leer(e.descripcion);
- const datos={tipo:e.tipo||'Otras',titulo:e.titulo,fecha:ck(a),hora:hm(a),duracion:Math.round((b-a)/60000),descripcion:armar(c.desc,estado,repro||'',c.tel,hora||'',motivo||'')};
- try{const r=await post({action:'actualizar',id:id,datos:datos});if(r.exito)cargar();else alert('Error al actualizar el estado: '+r.error);}catch(x){alert('Error de conexión');}}
+/* Si la reunión queda "No realizada" con nueva fecha, se agenda una actividad
+   pendiente en esa fecha (enlazada con la original mediante la marca ORIGEN). */
+async function guardarEstado(id,estado,repro,hora,motivo){
+ const e=todos.find(x=>x.id===id);if(!e)return false;
+ const a=new Date(e.fechaInicio),b=new Date(e.fechaFin),c=leer(e.descripcion),dur=Math.round((b-a)/60000);
+ const copia=todos.find(x=>leer(x.descripcion).origen===id),cc=copia?leer(copia.descripcion):null;
+ try{
+  if(estado==='no_realizada'&&repro){
+   const hh=hora||hm(a);
+   if(!copia){
+    const r=await post({action:'crear',datos:{tipo:e.tipo||'Otras',titulo:e.titulo,fecha:repro,hora:hh,duracion:dur,alarma:'30',descripcion:armar(c.desc,'pendiente','',c.tel,'','',id)}});
+    if(!r.exito){alert('No se pudo agendar la actividad en la nueva fecha: '+r.error);return false;}
+   }else if(cc.estado==='pendiente'){
+    const ca=new Date(copia.fechaInicio),cf=new Date(copia.fechaFin);
+    if(ck(ca)!==repro||hm(ca)!==hh){
+     const r=await post({action:'actualizar',id:copia.id,datos:{tipo:copia.tipo||'Otras',titulo:copia.titulo,fecha:repro,hora:hh,duracion:Math.round((cf-ca)/60000),descripcion:copia.descripcion}});
+     if(!r.exito){alert('No se pudo mover la actividad a la nueva fecha: '+r.error);return false;}
+    }
+   }
+  }else if(copia&&cc.estado==='pendiente'&&confirm('Esta reunión tenía una actividad agendada en la fecha nueva ('+nd(new Date(copia.fechaInicio))+'). ¿Desea eliminarla?')){
+   const r=await post({action:'eliminar',id:copia.id});
+   if(!r.exito)alert('No se pudo eliminar la actividad de la fecha nueva: '+r.error);
+  }
+  const datos={tipo:e.tipo||'Otras',titulo:e.titulo,fecha:ck(a),hora:hm(a),duracion:dur,descripcion:armar(c.desc,estado,repro||'',c.tel,hora||'',motivo||'',c.origen)};
+  const r2=await post({action:'actualizar',id:id,datos:datos});
+  if(!r2.exito)alert('Error al actualizar el estado: '+r2.error);
+ }catch(x){alert('Error de conexión');}
+ cargar();
+}
 function elegirEstado(s){estSel=s;['pendiente','realizada','no_realizada'].forEach(x=>{$('oe-'+x).className='oe'+(x===s?' on-'+x:'');});$('camposNoRealizada').classList.toggle('hidden',s!=='no_realizada');}
 function abrirEstado(id){const e=todos.find(x=>x.id===id);if(!e)return;idEst=id;const i=leer(e.descripcion);
  $('estadoTituloEvento').innerText=e.titulo;$('motivoNoRealizada').value=i.motivo;$('fechaReprogramacion').value=i.repro;$('horaReprogramacion').value=i.reproHora;diaRepro();elegirEstado(i.estado);mostrar('mEstado');}
@@ -484,6 +515,7 @@ async function descargarPDF(){
   const filas=ev.map((e,i)=>{const a=new Date(e.fechaInicio),b=new Date(e.fechaFin),n=leer(e.descripcion);
    let s='Pendiente';if(n.estado==='realizada')s='Realizada';else if(n.estado==='no_realizada')s='No realizada';else if(b<ahora)s='Por registrar';
    const o=[];if(n.estado==='no_realizada'){if(n.motivo)o.push('Motivo: '+n.motivo);if(n.repro)o.push('Reprogramada para: '+fr(n.repro,n.reproHora));}
+   if(n.origen){const og=todos.find(x=>x.id===n.origen);o.push('Reprogramada'+(og?' desde el '+nd(new Date(og.fechaInicio)):''));}
    const fer=feriado(a);if(fer)o.push('Feriado: '+fer);if(inD&&n.desc)o.push(resumir(n.desc,220));if(inT&&n.tel)o.push('Tel.: +'+n.tel);
    return[i+1,limpiarPdf(cap(a.toLocaleDateString('es-CL',{weekday:'long'}))+'\n'+fi_(ck(a))),hm(a)+' - '+hm(b),limpiarPdf(e.tipo||'Otras'),limpiarPdf(e.titulo),s,limpiarPdf(o.join('\n'))||'-'];});
   const doc=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'letter'});
