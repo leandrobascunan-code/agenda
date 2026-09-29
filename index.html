@@ -1,923 +1,538 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <!-- Etiquetas para que funcione como App en iPhone y Android -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Marina de Chile">
-  <!-- Ícono para la pantalla de inicio del celular -->
-  <link rel="apple-touch-icon" href="INSIGNIA.png">
-  
-  <title>Coordinación - Marina de Chile</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Generador de PDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-    .seccion { display: none; }
-    .seccion.activa { display: block; animation: fadeIn 0.3s ease-out forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .tab-btn.active { background-color: #4f46e5; color: white; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2); }
-    .tab-btn { color: #64748b; }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-
-    /* CELULAR: campos de texto más grandes */
-    @media (max-width: 767px) {
-      input, select, textarea { font-size: 16px !important; }
-    }
-    /* Pantallas táctiles: los botones de cada tarjeta siempre visibles */
-    @media (hover: none) {
-      .acciones-card { opacity: 1 !important; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Marina de Chile">
+<link rel="apple-touch-icon" href="INSIGNIA.png">
+<title>Coordinación - Marina de Chile</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<style>
+body{font-family:Inter,system-ui,sans-serif;background:#f8fafc}
+.sec{display:none}.sec.on{display:block}
+.mb{width:100%;display:flex;align-items:center;gap:.75rem;padding:.85rem 1.1rem;border-radius:.75rem;color:#94a3b8;font-weight:500}
+.mb:hover{background:#1e293b;color:#fff}.mb.act{background:rgba(79,70,229,.1);color:#818cf8}
+.tab{padding:.6rem 1rem;border-radius:.5rem;font-size:.875rem;font-weight:500;color:#64748b;white-space:nowrap}
+.tab.on{background:#4f46e5;color:#fff}
+.in{width:100%;border:2px solid #e2e8f0;border-radius:.75rem;padding:.75rem;background:#f8fafc;font-size:.875rem;outline:0}
+.in:focus{border-color:#6366f1;background:#fff}
+.lb{display:block;font-size:.875rem;font-weight:700;color:#334155;margin-bottom:.5rem}
+.ic{width:2.5rem;height:2.5rem;border-radius:50%;background:#f1f5f9;color:#64748b;display:flex;align-items:center;justify-content:center}
+.ic:hover{background:#e0e7ff;color:#4f46e5}
+.bd{display:inline-flex;align-items:center;padding:.25rem .5rem;border-radius:.25rem;font-size:.7rem;font-weight:700;border:1px solid;text-align:left}
+.pill{font-size:.75rem;font-weight:700;padding:.5rem .75rem;border-radius:9999px;display:flex;align-items:center}
+.dot{display:inline-block;width:.5rem;height:.5rem;border-radius:50%}
+.mo{position:fixed;inset:0;z-index:60;background:rgba(15,23,42,.6);display:flex;align-items:flex-end;justify-content:center}
+.mo.h{display:none}
+.mc{background:#fff;width:100%;max-height:92vh;overflow:auto;border-radius:1.5rem 1.5rem 0 0;padding:1.25rem 1.25rem 2rem}
+.bt{flex:1;display:flex;align-items:center;justify-content:center;font-weight:700;padding:.75rem;border-radius:.75rem;background:#f1f5f9;color:#334155}
+.bt.p{background:#4f46e5;color:#fff}.bt.r{background:#dc2626;color:#fff}
+.oe{display:flex;flex-direction:column;align-items:center;gap:.25rem;padding:.75rem .25rem;border-radius:.75rem;border:2px solid #e2e8f0;background:#fff;color:#64748b;font-size:.75rem;font-weight:700}
+.oe.on-pendiente{border-color:#6366f1;background:#eef2ff;color:#4338ca}
+.oe.on-realizada{border-color:#10b981;background:#ecfdf5;color:#047857}
+.oe.on-no_realizada{border-color:#ef4444;background:#fef2f2;color:#b91c1c}
+@media(min-width:768px){.mo{align-items:center;padding:1rem}.mc{max-width:26rem;border-radius:1rem;padding:2rem}.ic{width:2.25rem;height:2.25rem}.tab{padding:.5rem 1.25rem}.pill{padding:.375rem .75rem}.bt{padding:.6rem}}
+@media(max-width:767px){input,select,textarea{font-size:16px!important}}
+@media(hover:none){.ac{opacity:1!important}}
+</style>
 </head>
 <body class="flex flex-col md:flex-row h-screen text-slate-800 overflow-hidden">
 
-  <!-- Header Móvil (Solo se ve en celulares) -->
-  <div class="md:hidden flex items-center justify-between bg-[#0f172a] text-white p-4 z-30">
-    <div class="flex items-center space-x-3">
-      <img src="INSIGNIA.png" alt="Logo" class="h-10 object-contain bg-white rounded-full p-1">
-      <h1 class="text-sm font-bold tracking-widest text-slate-100">MARINA DE CHILE</h1>
-    </div>
-    <button onclick="toggleSidebar()" class="text-white hover:text-indigo-400 focus:outline-none p-2">
-      <i class="fa-solid fa-bars text-2xl"></i>
-    </button>
+<div class="md:hidden flex items-center justify-between bg-[#0f172a] text-white p-4 z-30">
+ <div class="flex items-center gap-3"><img src="INSIGNIA.png" alt="Logo" class="h-10 bg-white rounded-full p-1"><b class="text-sm tracking-widest">MARINA DE CHILE</b></div>
+ <button onclick="menu()" class="p-2"><i class="fa-solid fa-bars text-2xl"></i></button>
+</div>
+<div id="ov" class="fixed inset-0 bg-slate-900/50 z-40 hidden md:hidden" onclick="menu()"></div>
+
+<aside id="side" class="fixed md:static inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 w-72 bg-[#0f172a] text-white flex flex-col z-50">
+ <button onclick="menu()" class="md:hidden absolute top-4 right-4 text-slate-400"><i class="fa-solid fa-xmark text-2xl"></i></button>
+ <div class="p-8 mt-4 md:mt-0 text-center flex flex-col items-center border-b border-slate-800">
+  <div class="w-full h-32 flex items-center justify-center mb-4 bg-white/5 rounded-2xl p-4"><img src="INSIGNIA.png" alt="Logo Colegio Marina de Chile" class="max-w-full max-h-full object-contain"></div>
+  <h1 class="text-lg font-bold tracking-widest">MARINA DE CHILE</h1>
+  <p class="text-[10px] text-indigo-400 font-bold tracking-[0.2em] mt-1">COORDINACIÓN UTP</p>
+ </div>
+ <nav class="flex-1 px-4 py-6 space-y-2">
+  <button class="mb act" data-s="panel" onclick="ir('panel')"><i class="fa-solid fa-layer-group w-6"></i> Panel Principal</button>
+  <button class="mb" data-s="actividades" onclick="nueva()"><i class="fa-solid fa-calendar-plus w-6"></i> Agendar Actividad</button>
+  <button class="mb" data-s="configuracion" onclick="ir('configuracion')"><i class="fa-solid fa-gear w-6"></i> Configuración</button>
+ </nav>
+</aside>
+
+<main class="flex-1 overflow-y-auto bg-slate-50">
+ <header class="sticky top-0 bg-white/80 backdrop-blur border-b border-slate-200 px-6 md:px-10 py-4 md:py-6 flex justify-between items-center z-10">
+  <div>
+   <p class="text-xs text-indigo-600 font-bold uppercase tracking-widest mb-1 hidden md:block">Sistema de Gestión</p>
+   <h2 class="text-xl md:text-2xl font-extrabold">Hola, <span id="nombreUsuario" class="text-indigo-600">Usuario</span></h2>
+  </div>
+  <button onclick="nueva()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 md:px-5 py-2.5 rounded-xl shadow-md font-medium flex items-center text-sm"><i class="fa-solid fa-plus md:mr-2"></i><span class="hidden md:inline">Nueva Actividad</span></button>
+ </header>
+
+ <div class="p-4 md:p-10 max-w-6xl mx-auto pb-20">
+
+ <!-- PANEL -->
+ <section id="panel" class="sec on">
+  <div class="flex flex-wrap items-center justify-between mb-3 gap-2">
+   <h3 class="text-base md:text-xl font-bold">Calendario de Actividades</h3>
+   <div class="flex items-center gap-2 flex-wrap">
+    <span id="cargandoEventos" class="hidden text-xs font-medium text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i>Sincronizando...</span>
+    <button onclick="abrirReporte()" class="pill text-red-700 bg-red-50"><i class="fa-solid fa-file-pdf mr-1.5"></i>Reporte PDF</button>
+    <button onclick="irCal()" class="pill text-indigo-600 bg-indigo-50"><i class="fa-regular fa-calendar mr-1.5"></i>Ver calendario</button>
+   </div>
   </div>
 
-  <!-- Overlay para fondo oscuro en móvil -->
-  <div id="sidebarOverlay" class="fixed inset-0 bg-slate-900/50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
-
-  <!-- Sidebar Lateral -->
-  <aside id="sidebar" class="fixed md:static inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out w-72 bg-[#0f172a] text-white flex flex-col z-50">
-    <!-- Botón cerrar en móvil -->
-    <button onclick="toggleSidebar()" class="md:hidden absolute top-4 right-4 text-slate-400 hover:text-white">
-      <i class="fa-solid fa-xmark text-2xl"></i>
-    </button>
-
-    <div class="p-8 mt-4 md:mt-0 text-center flex flex-col items-center border-b border-slate-800">
-      <div class="w-full h-32 flex items-center justify-center mb-4 bg-white/5 rounded-2xl p-4">
-        <!-- Logo Fijo -->
-        <img id="logoSidebar" src="INSIGNIA.png" alt="Logo Colegio Marina de Chile" class="max-w-full max-h-full object-contain drop-shadow-md">
-      </div>
-      <h1 class="text-lg font-bold tracking-widest text-slate-100">MARINA DE CHILE</h1>
-      <p class="text-[10px] text-indigo-400 font-bold tracking-[0.2em] mt-1">COORDINACIÓN UTP</p>
-    </div>
-    
-    <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-      <button onclick="cambiarSeccion('panel')" class="w-full flex items-center px-5 py-3.5 rounded-xl bg-indigo-600/10 text-indigo-400 hover:bg-indigo-600 hover:text-white transition group border border-indigo-500/20">
-        <i class="fa-solid fa-layer-group w-8 text-lg"></i> <span class="font-medium">Panel Principal</span>
-      </button>
-      <button onclick="cambiarSeccion('actividades'); limpiarFormulario();" class="w-full flex items-center px-5 py-3.5 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition group">
-        <i class="fa-solid fa-calendar-plus w-8 text-lg group-hover:text-indigo-400"></i> <span class="font-medium">Agendar Actividad</span>
-      </button>
-      <button onclick="cambiarSeccion('configuracion')" class="w-full flex items-center px-5 py-3.5 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition group">
-        <i class="fa-solid fa-gear w-8 text-lg group-hover:text-indigo-400"></i> <span class="font-medium">Configuración</span>
-      </button>
-    </nav>
-  </aside>
-
-  <!-- Contenido Principal -->
-  <main class="flex-1 overflow-y-auto relative bg-slate-50">
-    <header class="sticky top-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 md:px-10 py-4 md:py-6 flex justify-between items-center z-10">
-      <div>
-        <p class="text-xs text-indigo-600 font-bold uppercase tracking-widest mb-1 hidden md:block">Sistema de Gestión</p>
-        <h2 class="text-xl md:text-2xl font-extrabold text-slate-800">Hola, <span id="nombreUsuario" class="text-indigo-600">Usuario</span></h2>
-      </div>
-      <button onclick="cambiarSeccion('actividades'); limpiarFormulario();" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 md:px-5 py-2.5 rounded-xl shadow-md transition font-medium flex items-center text-sm">
-        <i class="fa-solid fa-plus md:mr-2"></i> <span class="hidden md:inline">Nueva Actividad</span>
-      </button>
-    </header>
-
-    <div class="p-4 md:p-10 max-w-6xl mx-auto pb-20">
-      
-      <!-- SECCIÓN: PANEL PRINCIPAL -->
-      <section id="panel" class="seccion activa">
-        <div class="flex flex-wrap items-center justify-between mb-3 gap-2">
-          <h3 class="text-base md:text-xl font-bold text-slate-800">Calendario de Actividades</h3>
-          <div class="flex items-center gap-2 flex-wrap">
-            <div id="cargandoEventos" class="text-xs md:text-sm font-medium text-indigo-600 hidden bg-indigo-50 px-3 py-1 rounded-full">
-              <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Sincronizando...
-            </div>
-            <button onclick="abrirModalReporte()" class="text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 px-3 py-2 md:py-1.5 rounded-full flex items-center transition">
-              <i class="fa-solid fa-file-pdf mr-1.5"></i> Reporte PDF
-            </button>
-            <button onclick="irAlCalendario()" class="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 md:py-1.5 rounded-full flex items-center transition">
-              <i class="fa-regular fa-calendar mr-1.5"></i> Ver calendario
-            </button>
-          </div>
-        </div>
-        
-        <div class="flex overflow-x-auto space-x-2 mb-4 bg-white p-1.5 rounded-xl shadow-sm border border-slate-200 hide-scrollbar whitespace-nowrap">
-          <button class="tab-btn active px-4 md:px-5 py-2.5 md:py-2 rounded-lg font-medium text-sm transition" onclick="filtrarVista('hoy', this)">Hoy</button>
-          <button class="tab-btn px-4 md:px-5 py-2.5 md:py-2 rounded-lg font-medium text-sm transition hover:bg-slate-50" onclick="filtrarVista('semana', this)">Esta Semana</button>
-          <button class="tab-btn px-4 md:px-5 py-2.5 md:py-2 rounded-lg font-medium text-sm transition hover:bg-slate-50" onclick="filtrarVista('mes', this)">Este Mes</button>
-          <button class="tab-btn px-4 md:px-5 py-2.5 md:py-2 rounded-lg font-medium text-sm transition hover:bg-slate-50" onclick="filtrarVista('realizadas', this)">Realizadas</button>
-          <button class="tab-btn px-4 md:px-5 py-2.5 md:py-2 rounded-lg font-medium text-sm transition hover:bg-slate-50" onclick="filtrarVista('postergadas', this)">Postergadas</button>
-        </div>
-
-        <!-- Navegación por días -->
-        <div id="anclaLista" class="flex items-center justify-between bg-white rounded-xl shadow-sm border border-slate-200 p-2 mb-5 scroll-mt-24">
-          <button onclick="moverDia(-1)" title="Día anterior" class="w-11 h-11 md:w-10 md:h-10 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition flex-shrink-0"><i class="fa-solid fa-chevron-left"></i></button>
-          <div class="text-center px-2 min-w-0">
-            <p id="navDiaTitulo" class="text-sm md:text-base font-extrabold text-slate-800"></p>
-            <p id="navDiaFeriado" class="hidden text-xs md:text-sm font-bold text-red-600"></p>
-            <button id="btnHoyDia" onclick="irAHoy()" class="hidden text-xs font-bold text-indigo-600 hover:underline mt-0.5">Volver a hoy</button>
-          </div>
-          <button onclick="moverDia(1)" title="Día siguiente" class="w-11 h-11 md:w-10 md:h-10 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition flex-shrink-0"><i class="fa-solid fa-chevron-right"></i></button>
-        </div>
-
-        <p id="tituloRangoFechas" class="text-xs md:text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">MOSTRANDO ACTIVIDADES DE HOY</p>
-        <div id="listaEventos" class="space-y-4"></div>
-
-        <!-- Calendario (abajo). Celular: ancho completo. PC: grande y centrado -->
-        <div id="bloqueCalendario" class="mt-8 bg-white rounded-xl shadow-sm border border-slate-200 p-3 md:p-5 w-full md:max-w-4xl md:mx-auto scroll-mt-24">
-          <div class="flex items-center justify-between mb-2">
-            <h4 class="text-sm md:text-base font-bold text-slate-700 flex items-center"><i class="fa-regular fa-calendar mr-2 text-indigo-500"></i> Calendario</h4>
-            <button id="btnToggleCal" onclick="alternarCalendario()" class="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 md:py-1.5 rounded-full transition">
-              <span id="txtToggleCal">Ocultar</span>
-            </button>
-          </div>
-
-          <div id="cuerpoCalendario">
-            <div class="flex items-center justify-between mb-2">
-              <button onclick="cambiarMes(-1)" title="Mes anterior" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-left text-sm"></i></button>
-              <h3 id="tituloCalendario" class="text-lg md:text-2xl font-extrabold text-slate-900 font-serif text-center"></h3>
-              <button onclick="cambiarMes(1)" title="Mes siguiente" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition"><i class="fa-solid fa-chevron-right text-sm"></i></button>
-            </div>
-            <div class="flex items-center justify-center gap-4 min-h-[18px] mb-2">
-              <button id="btnHoyCalendario" onclick="irAHoy()" class="hidden text-xs md:text-sm font-bold text-indigo-600 hover:underline">Ir a hoy</button>
-              <button id="btnVerTodoMes" onclick="seleccionarDia(null)" class="hidden text-xs md:text-sm font-bold text-indigo-600 hover:underline">Quitar filtro de día</button>
-            </div>
-            <div class="border border-slate-300 rounded-lg overflow-hidden">
-              <div class="grid grid-cols-7 bg-[#b91c2f] text-white text-xs md:text-sm font-semibold text-center">
-                <div class="py-1.5 md:py-2"><span class="md:hidden">Lun</span><span class="hidden md:inline">Lunes</span></div>
-                <div class="py-1.5 md:py-2"><span class="md:hidden">Mar</span><span class="hidden md:inline">Martes</span></div>
-                <div class="py-1.5 md:py-2"><span class="md:hidden">Mié</span><span class="hidden md:inline">Miércoles</span></div>
-                <div class="py-1.5 md:py-2"><span class="md:hidden">Jue</span><span class="hidden md:inline">Jueves</span></div>
-                <div class="py-1.5 md:py-2"><span class="md:hidden">Vie</span><span class="hidden md:inline">Viernes</span></div>
-                <div class="py-1.5 md:py-2"><span class="md:hidden">Sáb</span><span class="hidden md:inline">Sábado</span></div>
-                <div class="py-1.5 md:py-2"><span class="md:hidden">Dom</span><span class="hidden md:inline">Domingo</span></div>
-              </div>
-              <div id="gridCalendario" class="grid grid-cols-7 gap-px bg-slate-300"></div>
-            </div>
-            <div id="feriadosMes" class="mt-3"></div>
-            <div class="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-[11px] md:text-xs text-slate-500">
-              <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-indigo-500 mr-1.5"></span> Pendiente</span>
-              <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span> Realizada</span>
-              <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-red-500 mr-1.5"></span> No realizada</span>
-              <span class="flex items-center"><span class="w-2.5 h-2.5 rounded bg-red-100 border border-red-300 mr-1.5"></span> Feriado</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- SECCIÓN: FORMULARIO -->
-      <section id="actividades" class="seccion">
-        <div class="bg-white p-6 md:p-10 rounded-2xl shadow-sm border border-slate-200 max-w-3xl mx-auto">
-          <h3 id="tituloFormulario" class="text-xl md:text-2xl font-bold mb-6 text-slate-800 border-b border-slate-100 pb-4">Agendar Actividad</h3>
-          
-          <div id="errorFormulario" class="hidden bg-red-100 text-red-700 p-4 rounded-xl text-sm font-medium mb-6 flex items-center shadow-inner border border-red-200">
-            <i class="fa-solid fa-triangle-exclamation mr-3 text-lg"></i>
-            <span id="textoErrorFormulario">El horario ingresado choca con otra actividad.</span>
-          </div>
-          
-          <form id="formActividad" onsubmit="guardarEvento(event)" class="space-y-5">
-            <input type="hidden" id="eventoId" value="">
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-              <div class="col-span-1">
-                <label class="block text-sm font-bold text-slate-700 mb-2">Tipo</label>
-                <select id="tipoActividad" required class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
-                  <option value="" disabled selected>Seleccione...</option>
-                  <option value="Entrevista apoderado">Entrevista apoderado</option>
-                  <option value="Entrevista alumnos">Entrevista alumnos</option>
-                  <option value="Entrevista funcionario">Entrevista funcionario</option>
-                  <option value="Reunión equipo">Reunión equipo</option>
-                  <option value="Reunión nivel">Reunión nivel</option>
-                  <option value="Reunión externa">Reunión externa</option>
-                  <option value="Otras">Otras</option>
-                </select>
-              </div>
-              <div class="col-span-1 md:col-span-2">
-                <label class="block text-sm font-bold text-slate-700 mb-2">Título / Asunto</label>
-                <input type="text" id="titulo" required class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm" placeholder="Ej. Revisión de notas">
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-              <div>
-                <label class="block text-sm font-bold text-slate-700 mb-2">Fecha</label>
-                <input type="date" id="fecha" required onchange="mostrarDiaSemanaForm()" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
-                <p id="diaSemanaForm" class="text-xs font-bold text-indigo-600 mt-1"></p>
-              </div>
-              <div class="grid grid-cols-2 md:grid-cols-1 gap-4 md:gap-0">
-                <div class="md:mb-0">
-                  <label class="block text-sm font-bold text-slate-700 mb-2">Inicio</label>
-                  <input type="time" id="hora" required class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
-                </div>
-                <div>
-                  <label class="block text-sm font-bold text-slate-700 mb-2">Duración (min)</label>
-                  <input type="number" id="duracion" required min="1" value="60" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
-                </div>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              <div>
-                <label class="block text-sm font-bold text-slate-700 mb-2">Teléfono de contacto (Opcional)</label>
-                <input type="tel" id="telefono" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm" placeholder="Ej. 9 1234 5678">
-                <p class="text-xs text-slate-500 mt-1">Celular chileno de 9 dígitos. Para otro país, incluya el código.</p>
-              </div>
-              <div>
-                <label class="block text-sm font-bold text-slate-700 mb-2">Alarma</label>
-                <select id="alarma" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
-                  <option value="0">Sin alarma</option>
-                  <option value="10">10 minutos antes</option>
-                  <option value="30" selected>30 minutos antes</option>
-                  <option value="60">1 hora antes</option>
-                  <option value="1440">1 día antes</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-sm font-bold text-slate-700 mb-2">Descripción (Opcional)</label>
-              <textarea id="descripcion" rows="3" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm" placeholder="Detalles de la reunión..."></textarea>
-            </div>
-            
-            <div class="flex flex-col-reverse md:flex-row md:space-x-4 pt-4 gap-y-3 md:gap-y-0">
-              <button type="button" onclick="cambiarSeccion('panel')" class="w-full md:w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition mt-3 md:mt-0">Cancelar</button>
-              <button type="submit" id="btnGuardar" class="w-full md:w-2/3 bg-indigo-600 text-white font-bold py-3.5 rounded-xl shadow-md hover:bg-indigo-700 transition flex justify-center items-center">
-                Guardar Actividad
-              </button>
-            </div>
-          </form>
-        </div>
-      </section>
-
-      <!-- SECCIÓN: CONFIGURACIÓN -->
-      <section id="configuracion" class="seccion">
-        <div class="max-w-2xl bg-white p-6 md:p-10 rounded-2xl shadow-sm border border-slate-200 mx-auto">
-          <h3 class="text-xl md:text-2xl font-bold mb-6 text-slate-800 border-b border-slate-100 pb-4">Personalizar Perfil</h3>
-          <div class="space-y-6">
-            <div>
-              <label class="block text-sm font-bold text-slate-700 mb-2">Tu Nombre Completo</label>
-              <input type="text" id="inputNombreConfig" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none" placeholder="Ej. Leandro Bascuñán">
-              <p class="text-xs text-slate-500 mt-2">El logo de la institución ("INSIGNIA.png") ya está configurado por defecto para todos los usuarios. Este nombre aparece en la firma de los reportes PDF.</p>
-            </div>
-            
-            <button onclick="guardarConfiguracion()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 px-6 rounded-xl w-full mt-4 transition shadow-md">Guardar Cambios</button>
-          </div>
-        </div>
-      </section>
-    </div>
-  </main>
-
-  <!-- Modal Eliminar (celular: sube desde abajo; PC: centrado) -->
-  <div id="modalEliminar" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[60] flex items-end md:items-center justify-center p-0 md:p-4">
-    <div class="bg-white rounded-t-3xl md:rounded-2xl p-6 md:p-8 pb-8 w-full md:max-w-sm shadow-2xl transform transition-all scale-95 opacity-0" id="modalBox">
-      <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4"><i class="fa-solid fa-trash-can"></i></div>
-      <h3 class="text-xl font-bold text-center text-slate-800 mb-2">¿Eliminar actividad?</h3>
-      <p class="text-center text-slate-500 mb-6 text-sm">Esta acción borrará el evento de tu calendario de Google.</p>
-      <div class="flex space-x-3">
-        <button onclick="cerrarModalEliminar()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 md:py-2.5 rounded-xl transition">Cancelar</button>
-        <button onclick="ejecutarEliminar()" id="btnConfirmarEliminar" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 md:py-2.5 rounded-xl shadow-md transition">Eliminar</button>
-      </div>
-    </div>
+  <div class="flex overflow-x-auto gap-2 mb-4 bg-white p-1.5 rounded-xl shadow-sm border border-slate-200">
+   <button class="tab on" onclick="filtrarVista('hoy',this)">Hoy</button>
+   <button class="tab" onclick="filtrarVista('semana',this)">Esta Semana</button>
+   <button class="tab" onclick="filtrarVista('mes',this)">Este Mes</button>
+   <button class="tab" onclick="filtrarVista('realizadas',this)">Realizadas</button>
+   <button class="tab" onclick="filtrarVista('postergadas',this)">Postergadas</button>
   </div>
 
-  <!-- Modal Estado de la reunión -->
-  <div id="modalEstado" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[60] flex items-end md:items-center justify-center p-0 md:p-4">
-    <div class="bg-white rounded-t-3xl md:rounded-2xl p-5 md:p-8 pb-8 w-full md:max-w-sm shadow-2xl max-h-[92vh] overflow-y-auto">
-      <h3 class="text-lg md:text-xl font-bold text-center text-slate-800 mb-1">Estado de la reunión</h3>
-      <p id="estadoTituloEvento" class="text-center text-slate-500 text-sm mb-4 break-words"></p>
-
-      <div class="grid grid-cols-3 gap-2 mb-4">
-        <button type="button" id="optEstado-pendiente" onclick="elegirEstado('pendiente')" class="flex flex-col items-center justify-center gap-1 py-3 md:py-2.5 px-1 rounded-xl border-2 text-xs md:text-sm font-bold transition border-slate-200 bg-white text-slate-500">
-          <i class="fa-regular fa-clock text-base"></i><span>Pendiente</span>
-        </button>
-        <button type="button" id="optEstado-realizada" onclick="elegirEstado('realizada')" class="flex flex-col items-center justify-center gap-1 py-3 md:py-2.5 px-1 rounded-xl border-2 text-xs md:text-sm font-bold transition border-slate-200 bg-white text-slate-500">
-          <i class="fa-solid fa-circle-check text-base"></i><span>Realizada</span>
-        </button>
-        <button type="button" id="optEstado-no_realizada" onclick="elegirEstado('no_realizada')" class="flex flex-col items-center justify-center gap-1 py-3 md:py-2.5 px-1 rounded-xl border-2 text-xs md:text-sm font-bold transition border-slate-200 bg-white text-slate-500">
-          <i class="fa-solid fa-circle-xmark text-base"></i><span>No realizada</span>
-        </button>
-      </div>
-
-      <!-- Campos que aparecen solo si la reunión no se realizó -->
-      <div id="camposNoRealizada" class="hidden">
-        <label class="block text-sm font-bold text-slate-700 mb-2">Motivo (breve)</label>
-        <input type="text" id="motivoNoRealizada" maxlength="120" placeholder="Ej. El apoderado no pudo asistir" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
-        <p class="text-xs text-slate-400 mt-1 mb-4">Máximo 120 caracteres.</p>
-
-        <label class="block text-sm font-bold text-slate-700 mb-2">Nueva fecha (opcional)</label>
-        <input type="date" id="fechaReprogramacion" onchange="mostrarDiaSemanaRepro()" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm mb-1">
-        <p id="diaSemanaRepro" class="text-xs font-bold text-indigo-600 mb-4 min-h-[16px]"></p>
-        <label class="block text-sm font-bold text-slate-700 mb-2">Nueva hora (opcional)</label>
-        <input type="time" id="horaReprogramacion" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm mb-4">
-      </div>
-
-      <div class="flex space-x-3 mt-2">
-        <button onclick="cerrarModalEstado()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 md:py-2.5 rounded-xl transition">Cancelar</button>
-        <button onclick="confirmarEstado()" id="btnConfirmarEstado" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 md:py-2.5 rounded-xl shadow-md transition">Guardar</button>
-      </div>
-    </div>
+  <div id="anclaLista" class="flex items-center justify-between bg-white rounded-xl shadow-sm border border-slate-200 p-2 mb-5 scroll-mt-24">
+   <button onclick="moverDia(-1)" title="Día anterior" class="ic" style="width:2.75rem;height:2.75rem"><i class="fa-solid fa-chevron-left"></i></button>
+   <div class="text-center px-2 min-w-0">
+    <p id="navDiaTitulo" class="text-sm md:text-base font-extrabold"></p>
+    <p id="navDiaFeriado" class="hidden text-xs md:text-sm font-bold text-red-600"></p>
+    <button id="btnHoyDia" onclick="irHoy()" class="hidden text-xs font-bold text-indigo-600 hover:underline mt-0.5">Volver a hoy</button>
+   </div>
+   <button onclick="moverDia(1)" title="Día siguiente" class="ic" style="width:2.75rem;height:2.75rem"><i class="fa-solid fa-chevron-right"></i></button>
   </div>
 
-  <!-- Modal Reporte PDF -->
-  <div id="modalReporte" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[60] flex items-end md:items-center justify-center p-0 md:p-4">
-    <div class="bg-white rounded-t-3xl md:rounded-2xl p-5 md:p-8 pb-8 w-full md:max-w-md shadow-2xl max-h-[92vh] overflow-y-auto">
-      <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-3"><i class="fa-solid fa-file-pdf"></i></div>
-      <h3 class="text-lg md:text-xl font-bold text-center text-slate-800 mb-1">Reporte de agenda en PDF</h3>
-      <p class="text-center text-slate-500 text-sm mb-5">Incluye el logo del colegio y el detalle de las actividades.</p>
+  <p id="tituloRangoFechas" class="text-xs md:text-sm font-bold text-slate-400 uppercase tracking-widest mb-4"></p>
+  <div id="listaEventos" class="space-y-4"></div>
 
-      <label class="block text-sm font-bold text-slate-700 mb-2">Período</label>
-      <select id="repPeriodo" onchange="alternarRangoReporte()" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
-        <option value="mes_calendario" id="optRepMesCal">Mes del calendario</option>
-        <option value="hoy">Hoy</option>
-        <option value="semana">Esta semana</option>
-        <option value="rango">Rango de fechas</option>
-      </select>
-
-      <div id="repRango" class="hidden grid grid-cols-2 gap-3 mt-3">
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Desde</label>
-          <input type="date" id="repDesde" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Hasta</label>
-          <input type="date" id="repHasta" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
-        </div>
-      </div>
-
-      <label class="block text-sm font-bold text-slate-700 mb-2 mt-4">Estado de las actividades</label>
-      <select id="repEstado" class="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-indigo-500 outline-none transition bg-slate-50 focus:bg-white text-sm">
-        <option value="todas">Todas</option>
-        <option value="pendiente">Solo pendientes (incluye por registrar)</option>
-        <option value="realizada">Solo realizadas</option>
-        <option value="no_realizada">Solo no realizadas</option>
-      </select>
-
-      <label class="flex items-center gap-3 mt-4 text-sm text-slate-700 cursor-pointer">
-        <input type="checkbox" id="repDescripcion" checked class="w-5 h-5 accent-indigo-600">
-        <span>Incluir la descripción de cada actividad</span>
-      </label>
-      <label class="flex items-center gap-3 mt-3 text-sm text-slate-700 cursor-pointer">
-        <input type="checkbox" id="repTelefono" class="w-5 h-5 accent-indigo-600">
-        <span>Incluir teléfonos de contacto</span>
-      </label>
-
-      <p class="text-xs text-slate-400 mt-4">Se incluyen las actividades cargadas en la agenda (últimos 180 días y próximos 90 días).</p>
-
-      <div class="flex space-x-3 mt-5">
-        <button onclick="cerrarModalReporte()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 md:py-2.5 rounded-xl transition">Cancelar</button>
-        <button onclick="descargarReportePDF()" id="btnDescargarReporte" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 md:py-2.5 rounded-xl shadow-md transition flex items-center justify-center">
-          <i class="fa-solid fa-download mr-2"></i> Descargar
-        </button>
-      </div>
+  <!-- Calendario (abajo). Celular: ancho completo. PC: grande y centrado -->
+  <div id="bloqueCalendario" class="mt-8 bg-white rounded-xl shadow-sm border border-slate-200 p-3 md:p-5 w-full md:max-w-4xl md:mx-auto scroll-mt-24">
+   <div class="flex items-center justify-between mb-2">
+    <h4 class="text-sm md:text-base font-bold text-slate-700"><i class="fa-regular fa-calendar mr-2 text-indigo-500"></i>Calendario</h4>
+    <button onclick="alternarCal()" class="pill text-indigo-600 bg-indigo-50"><span id="txtToggleCal">Ocultar</span></button>
+   </div>
+   <div id="cuerpoCalendario">
+    <div class="flex items-center justify-between mb-2">
+     <button onclick="cambiarMes(-1)" title="Mes anterior" class="ic"><i class="fa-solid fa-chevron-left text-sm"></i></button>
+     <h3 id="tituloCalendario" class="text-lg md:text-2xl font-extrabold font-serif text-center"></h3>
+     <button onclick="cambiarMes(1)" title="Mes siguiente" class="ic"><i class="fa-solid fa-chevron-right text-sm"></i></button>
     </div>
+    <div class="flex items-center justify-center gap-4 min-h-[18px] mb-2">
+     <button id="btnHoyCalendario" onclick="irHoy()" class="hidden text-xs md:text-sm font-bold text-indigo-600 hover:underline">Ir a hoy</button>
+     <button id="btnVerTodoMes" onclick="selDia(null)" class="hidden text-xs md:text-sm font-bold text-indigo-600 hover:underline">Quitar filtro de día</button>
+    </div>
+    <div class="border border-slate-300 rounded-lg overflow-hidden">
+     <div class="grid grid-cols-7 bg-[#b91c2f] text-white text-xs md:text-sm font-semibold text-center">
+      <div class="py-2"><span class="md:hidden">Lun</span><span class="hidden md:inline">Lunes</span></div>
+      <div class="py-2"><span class="md:hidden">Mar</span><span class="hidden md:inline">Martes</span></div>
+      <div class="py-2"><span class="md:hidden">Mié</span><span class="hidden md:inline">Miércoles</span></div>
+      <div class="py-2"><span class="md:hidden">Jue</span><span class="hidden md:inline">Jueves</span></div>
+      <div class="py-2"><span class="md:hidden">Vie</span><span class="hidden md:inline">Viernes</span></div>
+      <div class="py-2"><span class="md:hidden">Sáb</span><span class="hidden md:inline">Sábado</span></div>
+      <div class="py-2"><span class="md:hidden">Dom</span><span class="hidden md:inline">Domingo</span></div>
+     </div>
+     <div id="gridCalendario" class="grid grid-cols-7 gap-px bg-slate-300"></div>
+    </div>
+    <div id="feriadosMes" class="mt-3"></div>
+    <div class="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-[11px] md:text-xs text-slate-500">
+     <span class="flex items-center"><i class="dot bg-indigo-500 mr-1.5"></i>Pendiente</span>
+     <span class="flex items-center"><i class="dot bg-emerald-500 mr-1.5"></i>Realizada</span>
+     <span class="flex items-center"><i class="dot bg-red-500 mr-1.5"></i>No realizada</span>
+     <span class="flex items-center"><i class="dot bg-red-200 mr-1.5" style="border-radius:2px"></i>Feriado</span>
+    </div>
+   </div>
   </div>
-
-  <script>
-    // TU API URL DE GOOGLE APPS SCRIPT
-    const API_URL = "https://script.google.com/macros/s/AKfycbyLuqLPomnA45W7MDiCFlWE1uXqnqOVAQGM93dcjeKwl_zjWdYd61J1Cv5pxj_0liQFZg/exec"; 
-
-    let todosLosEventos = [];
-    let vistaActual = 'hoy';
-    let diaSeleccionado = null;
-    let mesVisible = { anio: new Date().getFullYear(), mes: new Date().getMonth() };
-    const DIAS_CORTOS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
-    let eventoAEliminar = null;
-    let eventoEstadoId = null;
-    let estadoElegido = 'pendiente';
-    let logoPdfCache = null;
-
-    const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-
-    // Hora en formato 24 h: "09:30"
-    function hhmm(d) {
-      return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-    }
-
-    // =====================================================
-    // FERIADOS DE CHILE
-    // Se calculan según la ley vigente (fijos, Semana Santa,
-    // traslados a lunes y feriados adicionales de septiembre).
-    // No incluye feriados regionales.
-    // =====================================================
-
-    // Día de junio en que cae el solsticio (Día Nacional de los Pueblos Indígenas, Ley 21.357)
-    const SOLSTICIO_JUNIO = { 2024: 20, 2025: 20, 2026: 21, 2027: 21, 2028: 20, 2029: 20, 2030: 21, 2031: 21, 2032: 20, 2033: 20, 2034: 21, 2035: 21 };
-    const cacheFeriados = {};
-
-    function sumarDias(d, n) {
-      return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
-    }
-
-    // Domingo de Pascua (algoritmo de Meeus/Jones/Butcher)
-    function pascua(anio) {
-      const a = anio % 19, b = Math.floor(anio / 100), c = anio % 100;
-      const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
-      const g = Math.floor((b - f + 1) / 3);
-      const h = (19 * a + b - d - g + 15) % 30;
-      const i = Math.floor(c / 4), k = c % 4;
-      const l = (32 + 2 * e + 2 * i - h - k) % 7;
-      const m = Math.floor((a + 11 * h + 22 * l) / 451);
-      const mes = Math.floor((h + l - 7 * m + 114) / 31);
-      const dia = ((h + l - 7 * m + 114) % 31) + 1;
-      return new Date(anio, mes - 1, dia);
-    }
-
-    // Ley 19.668: martes, miércoles o jueves pasan al lunes anterior; viernes pasa al lunes siguiente
-    function moverALunes(f) {
-      const dow = f.getDay();
-      if (dow >= 2 && dow <= 4) return sumarDias(f, -(dow - 1));
-      if (dow === 5) return sumarDias(f, 3);
-      return f;
-    }
-
-    function calcularFeriados(anio) {
-      const mapa = {};
-      const add = (f, nombre) => { mapa[claveDia(f)] = nombre; };
-      const fecha = (m, d) => new Date(anio, m - 1, d);
-
-      // Año Nuevo (Ley 20.983: si el 1 de enero es domingo, el 2 también es feriado)
-      add(fecha(1, 1), 'Año Nuevo');
-      if (fecha(1, 1).getDay() === 0) add(fecha(1, 2), 'Feriado adicional de Año Nuevo');
-
-      // Semana Santa
-      const p = pascua(anio);
-      add(sumarDias(p, -2), 'Viernes Santo');
-      add(sumarDias(p, -1), 'Sábado Santo');
-
-      add(fecha(5, 1), 'Día Nacional del Trabajo');
-      add(fecha(5, 21), 'Día de las Glorias Navales');
-      add(fecha(6, SOLSTICIO_JUNIO[anio] || 21), 'Día Nacional de los Pueblos Indígenas');
-      add(moverALunes(fecha(6, 29)), 'San Pedro y San Pablo');
-      add(fecha(7, 16), 'Virgen del Carmen');
-      add(fecha(8, 15), 'Asunción de la Virgen');
-
-      // Fiestas Patrias (Leyes 20.215 y 20.983)
-      const dow18 = fecha(9, 18).getDay();
-      add(fecha(9, 18), 'Independencia Nacional');
-      add(fecha(9, 19), 'Glorias del Ejército');
-      if (dow18 === 2) add(fecha(9, 17), 'Feriado adicional de Fiestas Patrias');  // 18 martes y 19 miércoles
-      if (dow18 === 3) add(fecha(9, 20), 'Feriado adicional de Fiestas Patrias');  // 18 miércoles y 19 jueves
-      if (dow18 === 6) add(fecha(9, 17), 'Feriado adicional de Fiestas Patrias');  // 18 sábado y 19 domingo
-
-      add(moverALunes(fecha(10, 12)), 'Encuentro de Dos Mundos');
-
-      // Iglesias Evangélicas y Protestantes (Ley 20.299)
-      const nombreIgl = 'Día de las Iglesias Evangélicas y Protestantes';
-      const dow31 = fecha(10, 31).getDay();
-      if (dow31 === 2) add(fecha(10, 30), nombreIgl);
-      else if (dow31 === 3) add(fecha(11, 2), nombreIgl);
-      else add(fecha(10, 31), nombreIgl);
-
-      add(fecha(11, 1), 'Todos los Santos');
-      add(fecha(12, 8), 'Inmaculada Concepción');
-      add(fecha(12, 25), 'Navidad');
-
-      return mapa;
-    }
-
-    // Devuelve el nombre del feriado ('' si no es feriado)
-    function feriadoDe(fecha) {
-      const anio = fecha.getFullYear();
-      if (!cacheFeriados[anio]) cacheFeriados[anio] = calcularFeriados(anio);
-      return cacheFeriados[anio][claveDia(fecha)] || '';
-    }
-
-    // =====================================================
-    // NAVEGACIÓN POR DÍAS Y MESES
-    // =====================================================
-
-    // Avanza (+1) o retrocede (-1) un día
-    function moverDia(delta) {
-      const base = diaSeleccionado ? new Date(diaSeleccionado + 'T00:00:00') : new Date();
-      base.setHours(0, 0, 0, 0);
-      const nueva = sumarDias(base, delta);
-      diaSeleccionado = claveDia(nueva);
-      mesVisible = { anio: nueva.getFullYear(), mes: nueva.getMonth() };
-      aplicarFiltro(vistaActual);
-    }
-
-    // Muestra en la barra el día de referencia y si es feriado
-    function renderizarNavDia() {
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
-      const ref = diaSeleccionado ? new Date(diaSeleccionado + 'T00:00:00') : hoy;
-      const esHoy = claveDia(ref) === claveDia(hoy);
-
-      document.getElementById('navDiaTitulo').innerText = (esHoy ? 'Hoy · ' : '') + nombreDia(ref) + ' de ' + ref.getFullYear();
-
-      const fer = feriadoDe(ref);
-      const elFer = document.getElementById('navDiaFeriado');
-      if (fer) {
-        elFer.innerText = 'Feriado: ' + fer;
-        elFer.classList.remove('hidden');
-      } else {
-        elFer.classList.add('hidden');
-      }
-
-      document.getElementById('btnHoyDia').classList.toggle('hidden', !diaSeleccionado);
-    }
-
-    // Avanza (+1) o retrocede (-1) un mes en el calendario
-    function cambiarMes(delta) {
-      let m = mesVisible.mes + delta;
-      let a = mesVisible.anio;
-      if (m < 0) { m = 11; a--; }
-      if (m > 11) { m = 0; a++; }
-      mesVisible = { anio: a, mes: m };
-      diaSeleccionado = null;
-      aplicarFiltro(vistaActual);
-    }
-
-    // Vuelve a hoy
-    function irAHoy() {
-      const h = new Date();
-      mesVisible = { anio: h.getFullYear(), mes: h.getMonth() };
-      diaSeleccionado = null;
-      aplicarFiltro(vistaActual);
-    }
-
-    // Muestra u oculta el cuerpo del calendario (y recuerda la elección)
-    function aplicarEstadoCalendario(abierto) {
-      document.getElementById('cuerpoCalendario').classList.toggle('hidden', !abierto);
-      document.getElementById('txtToggleCal').innerText = abierto ? 'Ocultar' : 'Mostrar';
-    }
-
-    function alternarCalendario() {
-      const abrir = document.getElementById('cuerpoCalendario').classList.contains('hidden');
-      aplicarEstadoCalendario(abrir);
-      try { localStorage.setItem('coordinacion_cal_abierto', abrir ? '1' : '0'); } catch (e) {}
-    }
-
-    // Baja hasta el calendario (lo abre si estaba oculto)
-    function irAlCalendario() {
-      aplicarEstadoCalendario(true);
-      try { localStorage.setItem('coordinacion_cal_abierto', '1'); } catch (e) {}
-      document.getElementById('bloqueCalendario').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    // Marcas guardadas dentro de la descripción del evento
-    const MARCA_ESTADO = /\[\[ESTADO:(realizada|no_realizada)(?:\|REPROG:(\d{4}-\d{2}-\d{2})(?:T(\d{2}:\d{2}))?)?\]\]/;
-    const MARCA_MOTIVO = /\[\[MOTIVO:([^\]]*)\]\]/;
-    const MARCA_TEL = /\[\[TEL:(\d+)\]\]/;
-
-    function leerEstado(descripcion) {
-      const texto = descripcion || '';
-      const m = texto.match(MARCA_ESTADO);
-      const mo = texto.match(MARCA_MOTIVO);
-      const t = texto.match(MARCA_TEL);
-      return {
-        estado: m ? m[1] : 'pendiente',
-        reprogramacion: m && m[2] ? m[2] : '',
-        reprogramacionHora: m && m[3] ? m[3] : '',
-        motivo: mo ? mo[1].trim() : '',
-        telefono: t ? t[1] : '',
-        descripcionLimpia: texto.replace(MARCA_ESTADO, '').replace(MARCA_MOTIVO, '').replace(MARCA_TEL, '').trim()
-      };
-    }
-
-    // Quita corchetes y saltos de línea del motivo para no romper la marca
-    function limpiarMotivo(m) {
-      return String(m || '').replace(/[\[\]\r\n]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120);
-    }
-
-    function armarDescripcion(descripcionLimpia, estado, reprogramacion, telefono, reprogramacionHora, motivo) {
-      const partes = [];
-      if (descripcionLimpia) partes.push(descripcionLimpia);
-      if (estado === 'realizada') {
-        partes.push('[[ESTADO:realizada]]');
-      } else if (estado === 'no_realizada') {
-        let repro = '';
-        if (reprogramacion) {
-          repro = '|REPROG:' + reprogramacion + (reprogramacionHora ? 'T' + reprogramacionHora : '');
-        }
-        partes.push('[[ESTADO:no_realizada' + repro + ']]');
-        const mot = limpiarMotivo(motivo);
-        if (mot) partes.push('[[MOTIVO:' + mot + ']]');
-      }
-      if (telefono) partes.push('[[TEL:' + telefono + ']]');
-      return partes.join('\n');
-    }
-
-    function estadoDe(ev) {
-      return leerEstado(ev.descripcion).estado;
-    }
-
-    // Evita que un texto escrito por el usuario se interprete como HTML
-    function escaparHtml(t) {
-      return String(t || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    function capitalizar(t) {
-      return t.charAt(0).toUpperCase() + t.slice(1);
-    }
-
-    // Clave de día en hora local: AAAA-MM-DD
-    function claveDia(d) {
-      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-    }
-
-    // Ejemplo: "Lunes 28 de septiembre"
-    function nombreDia(d) {
-      const t = d.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' }).replace(',', '');
-      return capitalizar(t);
-    }
-
-    // Deja solo dígitos. Un celular chileno de 9 dígitos que parte con 9 recibe el 56.
-    function normalizarTelefono(t) {
-      let d = (t || '').replace(/\D/g, '');
-      if (d.length === 9 && d.startsWith('9')) d = '56' + d;
-      return d;
-    }
-
-    // Texto de día de la semana + feriado o fin de semana, para los formularios
-    function textoDiaConAviso(fechaISO) {
-      const f = new Date(fechaISO + 'T00:00:00');
-      const fer = feriadoDe(f);
-      let html = nombreDia(f);
-      if (fer) {
-        html += ' <span class="text-red-600">· Feriado: ' + fer + '</span>';
-      } else if (f.getDay() === 0 || f.getDay() === 6) {
-        html += ' <span class="text-amber-600">· Fin de semana</span>';
-      }
-      return html;
-    }
-
-    // Muestra el día de la semana bajo el campo Fecha del formulario
-    function mostrarDiaSemanaForm() {
-      const v = document.getElementById('fecha').value;
-      document.getElementById('diaSemanaForm').innerHTML = v ? textoDiaConAviso(v) : '';
-    }
-
-    // Muestra el día de la semana bajo la nueva fecha de reprogramación
-    function mostrarDiaSemanaRepro() {
-      const v = document.getElementById('fechaReprogramacion').value;
-      document.getElementById('diaSemanaRepro').innerHTML = v ? textoDiaConAviso(v) : '';
-    }
-
-    function formatearFechaISO(iso) {
-      const [a, m, d] = iso.split('-');
-      return d + '-' + m + '-' + a;
-    }
-
-    // Ejemplo: "lunes 5 de octubre a las 15:30"
-    function formatearReprogramacion(fechaISO, hora) {
-      const dia = new Date(fechaISO + 'T00:00:00')
-        .toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
-        .replace(',', '');
-      return dia + (hora ? ' a las ' + hora : '');
-    }
-
-    const estiloTipos = {
-      'Entrevista apoderado': { bg: 'bg-purple-100', text: 'text-purple-700', border: 'border-purple-200', gradient: 'from-purple-500 to-fuchsia-500', icon: 'fa-user-tie' },
-      'Entrevista alumnos':   { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-200', gradient: 'from-emerald-400 to-teal-500', icon: 'fa-user-graduate' },
-      'Entrevista funcionario': { bg: 'bg-sky-100', text: 'text-sky-700', border: 'border-sky-200', gradient: 'from-sky-400 to-blue-500', icon: 'fa-briefcase' },
-      'Reunión equipo':       { bg: 'bg-indigo-100', text: 'text-indigo-700', border: 'border-indigo-200', gradient: 'from-indigo-500 to-blue-600', icon: 'fa-users' },
-      'Reunión nivel':        { bg: 'bg-rose-100', text: 'text-rose-700', border: 'border-rose-200', gradient: 'from-rose-400 to-red-500', icon: 'fa-layer-group' },
-      'Reunión externa':      { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200', gradient: 'from-amber-400 to-orange-500', icon: 'fa-building' },
-      'Otras':                { bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200', gradient: 'from-slate-400 to-gray-500', icon: 'fa-calendar-check' }
-    };
-
-    // Lógica para menú móvil
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('sidebarOverlay');
-      sidebar.classList.toggle('-translate-x-full');
-      overlay.classList.toggle('hidden');
-    }
-
-    function cambiarSeccion(id) {
-      document.querySelectorAll('.seccion').forEach(sec => sec.classList.remove('activa'));
-      document.getElementById(id).classList.add('activa');
-      if(id === 'panel') cargarDatosDeCalendar();
-      
-      // Auto-cerrar menú en móviles al hacer clic
-      if(window.innerWidth < 768) {
-          const sidebar = document.getElementById('sidebar');
-          if(!sidebar.classList.contains('-translate-x-full')){
-              toggleSidebar();
-          }
-      }
-    }
-
-    async function cargarDatosDeCalendar() {
-      const loader = document.getElementById('cargandoEventos');
-      loader.classList.remove('hidden');
-      
-      try {
-        const respuesta = await fetch(`${API_URL}?action=obtenerEventos`);
-        const res = await respuesta.json();
-        
-        loader.classList.add('hidden');
-        if(res.exito) {
-          todosLosEventos = res.eventos;
-          aplicarFiltro(vistaActual);
-        } else {
-            console.error("Error desde el servidor:", res.error);
-        }
-      } catch (error) {
-        loader.classList.add('hidden');
-        console.error("Error de conexión:", error);
-      }
-    }
-
-    async function guardarEvento(e) {
-      e.preventDefault();
-      const btn = document.getElementById('btnGuardar');
-      const originalText = btn.innerText;
-      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-      btn.disabled = true;
-      
-      document.getElementById('errorFormulario').classList.add('hidden');
-
-      const id = document.getElementById('eventoId').value;
-      const eventoExistente = id ? todosLosEventos.find(e => e.id === id) : null;
-      const estadoPrevio = eventoExistente
-        ? leerEstado(eventoExistente.descripcion)
-        : { estado: 'pendiente', reprogramacion: '', reprogramacionHora: '', motivo: '' };
-      const datos = {
-        tipo: document.getElementById('tipoActividad').value,
-        titulo: document.getElementById('titulo').value,
-        fecha: document.getElementById('fecha').value,
-        hora: document.getElementById('hora').value,
-        duracion: document.getElementById('duracion').value,
-        alarma: document.getElementById('alarma').value,
-        descripcion: armarDescripcion(
-          document.getElementById('descripcion').value.trim(),
-          estadoPrevio.estado,
-          estadoPrevio.reprogramacion,
-          normalizarTelefono(document.getElementById('telefono').value),
-          estadoPrevio.reprogramacionHora,
-          estadoPrevio.motivo
-        )
-      };
-
-      const payload = {
-        action: id ? 'actualizar' : 'crear',
-        id: id,
-        datos: datos
-      };
-
-      try {
-        const respuesta = await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        });
-        const res = await respuesta.json();
-        finalizarGuardado(res, btn, originalText);
-      } catch(error) {
-          finalizarGuardado({exito: false, error: "Error de conexión"}, btn, originalText);
-      }
-    }
-
-    async function ejecutarEliminar() {
-      if(!eventoAEliminar) return;
-      const btn = document.getElementById('btnConfirmarEliminar');
-      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-      btn.disabled = true;
-
-      const payload = { action: 'eliminar', id: eventoAEliminar };
-
-      try {
-        const respuesta = await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        });
-        const res = await respuesta.json();
-        
-        btn.innerHTML = 'Eliminar';
-        btn.disabled = false;
-        cerrarModalEliminar();
-        
-        if(res.exito) cargarDatosDeCalendar();
-        else alert('Error al eliminar: ' + res.error);
-
-      } catch(error) {
-          btn.innerHTML = 'Eliminar';
-          btn.disabled = false;
-          alert("Error de conexión");
-      }
-    }
-
-    function filtrarVista(vista, btnElement) {
-      vistaActual = vista;
-      diaSeleccionado = null;
-      mesVisible = { anio: new Date().getFullYear(), mes: new Date().getMonth() };
-      document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active', 'bg-indigo-600', 'text-white', 'shadow-md');
-        btn.classList.add('text-slate-600', 'hover:bg-slate-50');
-      });
-      btnElement.classList.add('active', 'bg-indigo-600', 'text-white', 'shadow-md');
-      btnElement.classList.remove('text-slate-600', 'hover:bg-slate-50');
-      aplicarFiltro(vista);
-    }
-
-    function aplicarFiltro(vista) {
-      const hoy = new Date();
-      hoy.setHours(0,0,0,0);
-
-      const inicioSemana = new Date(hoy);
-      inicioSemana.setDate(hoy.getDate() - ((hoy.getDay() + 6) % 7));
-      const finSemana = new Date(inicioSemana);
-      finSemana.setDate(inicioSemana.getDate() + 6);
-      const limiteSemana = new Date(finSemana.getTime() + 86400000);
-
-      const porFecha = (a, b) => new Date(a.fechaInicio) - new Date(b.fechaInicio);
-      let eventosFiltrados = [];
-      let textoTitulo = "";
-
-      if (diaSeleccionado) {
-        const dSel = new Date(diaSeleccionado + 'T00:00:00');
-        const fSel = feriadoDe(dSel);
-        textoTitulo = "Actividades del " + nombreDia(dSel) + (fSel ? ' · Feriado: ' + fSel : '');
-        eventosFiltrados = todosLosEventos
-          .filter(e => claveDia(new Date(e.fechaInicio)) === diaSeleccionado)
-          .sort(porFecha);
-      }
-      else if (vista === 'hoy') {
-        const fHoy = feriadoDe(hoy);
-        textoTitulo = "Actividades de hoy · " + nombreDia(hoy) + (fHoy ? ' · Feriado: ' + fHoy : '');
-        eventosFiltrados = todosLosEventos
-          .filter(e => estadoDe(e) === 'pendiente' && claveDia(new Date(e.fechaInicio)) === claveDia(hoy))
-          .sort(porFecha);
-      }
-      else if (vista === 'semana') {
-        textoTitulo = `Semana del ${inicioSemana.getDate()} al ${finSemana.getDate()} de ${MESES[finSemana.getMonth()]}`;
-        eventosFiltrados = todosLosEventos
-          .filter(e => {
-            const d = new Date(e.fechaInicio);
-            return estadoDe(e) === 'pendiente' && d >= inicioSemana && d < limiteSemana;
-          })
-          .sort(porFecha);
-      }
-      else if (vista === 'mes') {
-        textoTitulo = `Mes de ${MESES[hoy.getMonth()]}`;
-        eventosFiltrados = todosLosEventos
-          .filter(e => {
-            const d = new Date(e.fechaInicio);
-            return estadoDe(e) === 'pendiente' && d.getMonth() === hoy.getMonth() && d.getFullYear() === hoy.getFullYear();
-          })
-          .sort(porFecha);
-      }
-      else if (vista === 'realizadas') {
-        textoTitulo = "Reuniones realizadas";
-        eventosFiltrados = todosLosEventos
-          .filter(e => estadoDe(e) === 'realizada')
-          .sort((a, b) => porFecha(b, a));
-      }
-      else if (vista === 'postergadas') {
-        textoTitulo = "Reuniones no realizadas (postergadas)";
-        eventosFiltrados = todosLosEventos
-          .filter(e => estadoDe(e) === 'no_realizada')
-          .sort((a, b) => porFecha(b, a));
-      }
-
-      document.getElementById('tituloRangoFechas').innerText = textoTitulo;
-      renderizarNavDia();
-      renderizarLista(eventosFiltrados);
-      renderizarCalendario();
-    }
-
-    // Tocar un día del calendario filtra la lista y sube hasta ella; tocarlo de nuevo quita el filtro
-    function seleccionarDia(clave) {
-      diaSeleccionado = (clave && clave !== diaSeleccionado) ? clave : null;
-      aplicarFiltro(vistaActual);
-      if (diaSeleccionado) {
-        document.getElementById('anclaLista').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }
-
-    // Calendario mensual (los días de otros meses quedan en blanco)
-    // Celular: casillas compactas con puntos de color.
-    // PC: casillas grandes con feriado y las primeras 2 actividades del día.
-    function renderizarCalendario() {
-      const hoy = new Date();
-      const hoyClave = claveDia(hoy);
-      const anio = mesVisible.anio;
-      const mes = mesVisible.mes;
-
-      document.getElementById('tituloCalendario').innerText = MESES[mes] + ' ' + anio;
-      document.getElementById('btnVerTodoMes').classList.toggle('hidden', !diaSeleccionado);
-      document.getElementById('btnHoyCalendario').classList.toggle('hidden', anio === hoy.getFullYear() && mes === hoy.getMonth());
-
-      const porDia = {};
-      const listaDia = {};
-      todosLosEventos.forEach(ev => {
-        const f = new Date(ev.fechaInicio);
-        if (f.getFullYear() !== anio || f.getMonth() !== mes) return;
-        const k = claveDia(f);
-        if (!porDia[k]) porDia[k] = { pendiente: 0, realizada: 0, no_realizada: 0 };
-        porDia[k][estadoDe(ev)]++;
-        if (!listaDia[k])
+ </section>
+
+ <!-- FORMULARIO -->
+ <section id="actividades" class="sec">
+  <div class="bg-white p-6 md:p-10 rounded-2xl shadow-sm border border-slate-200 max-w-3xl mx-auto">
+   <h3 id="tituloFormulario" class="text-xl md:text-2xl font-bold mb-6 border-b border-slate-100 pb-4">Agendar Actividad</h3>
+   <div id="errorFormulario" class="hidden bg-red-100 text-red-700 p-4 rounded-xl text-sm font-medium mb-6 border border-red-200"><i class="fa-solid fa-triangle-exclamation mr-2"></i><span id="textoErrorFormulario"></span></div>
+   <form id="formActividad" onsubmit="guardar(event)" class="space-y-5">
+    <input type="hidden" id="eventoId">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+     <div><label class="lb">Tipo</label>
+      <select id="tipoActividad" required class="in">
+       <option value="" disabled selected>Seleccione...</option>
+       <option>Entrevista apoderado</option><option>Entrevista alumnos</option><option>Entrevista funcionario</option>
+       <option>Reunión equipo</option><option>Reunión nivel</option><option>Reunión externa</option><option>Otras</option>
+      </select></div>
+     <div class="md:col-span-2"><label class="lb">Título / Asunto</label><input type="text" id="titulo" required class="in" placeholder="Ej. Revisión de notas"></div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+     <div><label class="lb">Fecha</label><input type="date" id="fecha" required onchange="diaForm()" class="in"><p id="diaSemanaForm" class="text-xs font-bold text-indigo-600 mt-1"></p></div>
+     <div class="grid grid-cols-2 md:grid-cols-1 gap-4 md:gap-0">
+      <div><label class="lb">Inicio</label><input type="time" id="hora" required class="in"></div>
+      <div><label class="lb">Duración (min)</label><input type="number" id="duracion" required min="1" value="60" class="in"></div>
+     </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+     <div><label class="lb">Teléfono de contacto (Opcional)</label><input type="tel" id="telefono" class="in" placeholder="Ej. 9 1234 5678"><p class="text-xs text-slate-500 mt-1">Celular chileno de 9 dígitos. Para otro país, incluya el código.</p></div>
+     <div><label class="lb">Alarma</label>
+      <select id="alarma" class="in">
+       <option value="0">Sin alarma</option><option value="10">10 minutos antes</option><option value="30" selected>30 minutos antes</option>
+       <option value="60">1 hora antes</option><option value="1440">1 día antes</option>
+      </select></div>
+    </div>
+    <div><label class="lb">Descripción (Opcional)</label><textarea id="descripcion" rows="3" class="in" placeholder="Detalles de la reunión..."></textarea></div>
+    <div class="flex flex-col-reverse md:flex-row gap-3 pt-4">
+     <button type="button" onclick="ir('panel')" class="bt md:flex-none md:w-1/3">Cancelar</button>
+     <button type="submit" id="btnGuardar" class="bt p">Guardar Actividad</button>
+    </div>
+   </form>
+  </div>
+ </section>
+
+ <!-- CONFIGURACIÓN -->
+ <section id="configuracion" class="sec">
+  <div class="max-w-2xl bg-white p-6 md:p-10 rounded-2xl shadow-sm border border-slate-200 mx-auto">
+   <h3 class="text-xl md:text-2xl font-bold mb-6 border-b border-slate-100 pb-4">Personalizar Perfil</h3>
+   <label class="lb">Tu Nombre Completo</label>
+   <input type="text" id="inputNombreConfig" class="in" placeholder="Ej. Leandro Bascuñán">
+   <p class="text-xs text-slate-500 mt-2 mb-6">El logo ("INSIGNIA.png") ya está configurado. Este nombre aparece en la firma de los reportes PDF.</p>
+   <button onclick="guardarCfg()" class="bt" style="background:#1e293b;color:#fff;width:100%">Guardar Cambios</button>
+  </div>
+ </section>
+
+ </div>
+</main>
+
+<!-- Ventana: eliminar -->
+<div id="mEliminar" class="mo h"><div class="mc">
+ <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4"><i class="fa-solid fa-trash-can"></i></div>
+ <h3 class="text-xl font-bold text-center mb-2">¿Eliminar actividad?</h3>
+ <p class="text-center text-slate-500 mb-6 text-sm">Esta acción borrará el evento de su calendario de Google.</p>
+ <div class="flex gap-3"><button class="bt" onclick="ocultar('mEliminar')">Cancelar</button><button id="btnConfirmarEliminar" class="bt r" onclick="ejecutarEliminar()">Eliminar</button></div>
+</div></div>
+
+<!-- Ventana: estado -->
+<div id="mEstado" class="mo h"><div class="mc">
+ <h3 class="text-lg md:text-xl font-bold text-center mb-1">Estado de la reunión</h3>
+ <p id="estadoTituloEvento" class="text-center text-slate-500 text-sm mb-4 break-words"></p>
+ <div class="grid grid-cols-3 gap-2 mb-4">
+  <button type="button" id="oe-pendiente" class="oe" onclick="elegirEstado('pendiente')"><i class="fa-regular fa-clock"></i>Pendiente</button>
+  <button type="button" id="oe-realizada" class="oe" onclick="elegirEstado('realizada')"><i class="fa-solid fa-circle-check"></i>Realizada</button>
+  <button type="button" id="oe-no_realizada" class="oe" onclick="elegirEstado('no_realizada')"><i class="fa-solid fa-circle-xmark"></i>No realizada</button>
+ </div>
+ <div id="camposNoRealizada" class="hidden">
+  <label class="lb">Motivo (breve)</label>
+  <input type="text" id="motivoNoRealizada" maxlength="120" placeholder="Ej. El apoderado no pudo asistir" class="in">
+  <p class="text-xs text-slate-400 mt-1 mb-4">Máximo 120 caracteres.</p>
+  <label class="lb">Nueva fecha (opcional)</label>
+  <input type="date" id="fechaReprogramacion" onchange="diaRepro()" class="in mb-1">
+  <p id="diaSemanaRepro" class="text-xs font-bold text-indigo-600 mb-4 min-h-[16px]"></p>
+  <label class="lb">Nueva hora (opcional)</label>
+  <input type="time" id="horaReprogramacion" class="in mb-4">
+ </div>
+ <div class="flex gap-3 mt-2"><button class="bt" onclick="ocultar('mEstado')">Cancelar</button><button id="btnConfirmarEstado" class="bt p" onclick="confirmarEstado()">Guardar</button></div>
+</div></div>
+
+<!-- Ventana: reporte PDF -->
+<div id="mReporte" class="mo h"><div class="mc">
+ <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-3"><i class="fa-solid fa-file-pdf"></i></div>
+ <h3 class="text-lg md:text-xl font-bold text-center mb-1">Reporte de agenda en PDF</h3>
+ <p class="text-center text-slate-500 text-sm mb-5">Incluye el logo del colegio y el detalle de las actividades.</p>
+ <label class="lb">Período</label>
+ <select id="repPeriodo" onchange="repRango()" class="in">
+  <option value="mes_calendario" id="optRepMesCal">Mes del calendario</option><option value="hoy">Hoy</option>
+  <option value="semana">Esta semana</option><option value="rango">Rango de fechas</option>
+ </select>
+ <div id="repRango" class="hidden grid grid-cols-2 gap-3 mt-3">
+  <div><label class="text-xs font-bold text-slate-600 block mb-1">Desde</label><input type="date" id="repDesde" class="in"></div>
+  <div><label class="text-xs font-bold text-slate-600 block mb-1">Hasta</label><input type="date" id="repHasta" class="in"></div>
+ </div>
+ <label class="lb mt-4">Estado de las actividades</label>
+ <select id="repEstado" class="in">
+  <option value="todas">Todas</option><option value="pendiente">Solo pendientes (incluye por registrar)</option>
+  <option value="realizada">Solo realizadas</option><option value="no_realizada">Solo no realizadas</option>
+ </select>
+ <label class="flex items-center gap-3 mt-4 text-sm"><input type="checkbox" id="repDescripcion" checked class="w-5 h-5 accent-indigo-600">Incluir la descripción de cada actividad</label>
+ <label class="flex items-center gap-3 mt-3 text-sm"><input type="checkbox" id="repTelefono" class="w-5 h-5 accent-indigo-600">Incluir teléfonos de contacto</label>
+ <p class="text-xs text-slate-400 mt-4">Se incluyen las actividades cargadas en la agenda (últimos 180 días y próximos 90 días).</p>
+ <div class="flex gap-3 mt-5"><button class="bt" onclick="ocultar('mReporte')">Cancelar</button><button id="btnDescargarReporte" class="bt r" onclick="descargarPDF()"><i class="fa-solid fa-download mr-2"></i>Descargar</button></div>
+</div></div>
+
+<script>
+const API_URL="https://script.google.com/macros/s/AKfycbyLuqLPomnA45W7MDiCFlWE1uXqnqOVAQGM93dcjeKwl_zjWdYd61J1Cv5pxj_0liQFZg/exec";
+const $=id=>document.getElementById(id);
+const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const MC=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const DC=['dom','lun','mar','mié','jue','vie','sáb'];
+const TIPOS={'Entrevista apoderado':['purple','fa-user-tie'],'Entrevista alumnos':['emerald','fa-user-graduate'],'Entrevista funcionario':['sky','fa-briefcase'],'Reunión equipo':['indigo','fa-users'],'Reunión nivel':['rose','fa-layer-group'],'Reunión externa':['amber','fa-building'],'Otras':['slate','fa-calendar-check']};
+const EST={realizada:['bg-emerald-100 text-emerald-700 border-emerald-200','fa-circle-check','Realizada'],no_realizada:['bg-red-100 text-red-700 border-red-200','fa-circle-xmark','No realizada'],porReg:['bg-amber-100 text-amber-700 border-amber-200','fa-hourglass-half','Por registrar'],pendiente:['bg-indigo-50 text-indigo-700 border-indigo-200','fa-clock','Pendiente']};
+let todos=[],vista='hoy',sel=null,mes={a:new Date().getFullYear(),m:new Date().getMonth()},idElim=null,idEst=null,estSel='pendiente',LOGO=null;
+
+/* ---------- Utilidades ---------- */
+const P=n=>String(n).padStart(2,'0');
+const ck=d=>d.getFullYear()+'-'+P(d.getMonth()+1)+'-'+P(d.getDate());
+const hm=d=>P(d.getHours())+':'+P(d.getMinutes());
+const sd=(d,n)=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);
+const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
+const nd=d=>cap(d.toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'}).replace(',',''));
+const fi_=iso=>iso.split('-').reverse().join('-');
+const fr=(iso,h)=>new Date(iso+'T00:00:00').toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'}).replace(',','')+(h?' a las '+h:'');
+const esc=t=>String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const mostrar=id=>$(id).classList.remove('h'),ocultar=id=>$(id).classList.add('h');
+function telNorm(t){let d=(t||'').replace(/\D/g,'');if(d.length===9&&d.startsWith('9'))d='56'+d;return d;}
+
+/* ---------- Marcas guardadas en la descripción del evento ---------- */
+const RE_E=/\[\[ESTADO:(realizada|no_realizada)(?:\|REPROG:(\d{4}-\d{2}-\d{2})(?:T(\d{2}:\d{2}))?)?\]\]/,RE_M=/\[\[MOTIVO:([^\]]*)\]\]/,RE_T=/\[\[TEL:(\d+)\]\]/;
+function leer(d){const t=d||'',e=t.match(RE_E),m=t.match(RE_M),p=t.match(RE_T);
+ return{estado:e?e[1]:'pendiente',repro:(e&&e[2])||'',reproHora:(e&&e[3])||'',motivo:m?m[1].trim():'',tel:p?p[1]:'',desc:t.replace(RE_E,'').replace(RE_M,'').replace(RE_T,'').trim()};}
+function armar(desc,estado,repro,tel,hora,motivo){const a=[];if(desc)a.push(desc);
+ if(estado==='realizada')a.push('[[ESTADO:realizada]]');
+ else if(estado==='no_realizada'){a.push('[[ESTADO:no_realizada'+(repro?'|REPROG:'+repro+(hora?'T'+hora:''):'')+']]');
+  const mo=String(motivo||'').replace(/[\[\]\r\n]+/g,' ').replace(/\s+/g,' ').trim().slice(0,120);if(mo)a.push('[[MOTIVO:'+mo+']]');}
+ if(tel)a.push('[[TEL:'+tel+']]');return a.join('\n');}
+const estadoDe=e=>leer(e.descripcion).estado;
+
+/* ---------- Feriados de Chile (según la ley vigente; sin feriados regionales) ---------- */
+const SOL={2024:20,2025:20,2026:21,2027:21,2028:20,2029:20,2030:21,2031:21,2032:20,2033:20,2034:21,2035:21},CF={};
+function pascua(a){const x=a%19,b=Math.floor(a/100),c=a%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*x+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((x+11*h+22*l)/451),mm=Math.floor((h+l-7*m+114)/31),dd=((h+l-7*m+114)%31)+1;return new Date(a,mm-1,dd);}
+function lunes(f){const w=f.getDay();return w>=2&&w<=4?sd(f,1-w):w===5?sd(f,3):f;}
+function calcF(a){const m={},A=(f,n)=>{m[ck(f)]=n},F=(x,y)=>new Date(a,x-1,y);
+ A(F(1,1),'Año Nuevo');if(F(1,1).getDay()===0)A(F(1,2),'Feriado adicional de Año Nuevo');
+ const p=pascua(a);A(sd(p,-2),'Viernes Santo');A(sd(p,-1),'Sábado Santo');
+ A(F(5,1),'Día Nacional del Trabajo');A(F(5,21),'Día de las Glorias Navales');
+ A(F(6,SOL[a]||21),'Día Nacional de los Pueblos Indígenas');A(lunes(F(6,29)),'San Pedro y San Pablo');
+ A(F(7,16),'Virgen del Carmen');A(F(8,15),'Asunción de la Virgen');
+ const w=F(9,18).getDay();A(F(9,18),'Independencia Nacional');A(F(9,19),'Glorias del Ejército');
+ if(w===2||w===6)A(F(9,17),'Feriado adicional de Fiestas Patrias');if(w===3)A(F(9,20),'Feriado adicional de Fiestas Patrias');
+ A(lunes(F(10,12)),'Encuentro de Dos Mundos');
+ const w2=F(10,31).getDay();A(w2===2?F(10,30):w2===3?F(11,2):F(10,31),'Día de las Iglesias Evangélicas y Protestantes');
+ A(F(11,1),'Todos los Santos');A(F(12,8),'Inmaculada Concepción');A(F(12,25),'Navidad');return m;}
+function feriado(d){const a=d.getFullYear();if(!CF[a])CF[a]=calcF(a);return CF[a][ck(d)]||'';}
+
+/* ---------- Menú y secciones ---------- */
+function menu(){$('side').classList.toggle('-translate-x-full');$('ov').classList.toggle('hidden');}
+function ir(id){document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');
+ document.querySelectorAll('.mb').forEach(b=>b.classList.toggle('act',b.dataset.s===id));
+ if(id==='panel')cargar();
+ if(window.innerWidth<768&&!$('side').classList.contains('-translate-x-full'))menu();}
+
+/* ---------- Datos ---------- */
+async function post(p){const r=await fetch(API_URL,{method:'POST',body:JSON.stringify(p)});return r.json();}
+async function cargar(){const l=$('cargandoEventos');l.classList.remove('hidden');
+ try{const r=await fetch(API_URL+'?action=obtenerEventos'),j=await r.json();l.classList.add('hidden');
+  if(j.exito){todos=j.eventos;filtrar();}else console.error(j.error);}
+ catch(e){l.classList.add('hidden');console.error(e);}}
+
+/* ---------- Navegación por días y meses ---------- */
+function moverDia(n){const b=sel?new Date(sel+'T00:00:00'):new Date();b.setHours(0,0,0,0);const d=sd(b,n);sel=ck(d);mes={a:d.getFullYear(),m:d.getMonth()};filtrar();}
+function navDia(){const h=new Date();h.setHours(0,0,0,0);const r=sel?new Date(sel+'T00:00:00'):h,f=feriado(r),e=$('navDiaFeriado');
+ $('navDiaTitulo').innerText=(ck(r)===ck(h)?'Hoy · ':'')+nd(r)+' de '+r.getFullYear();
+ e.classList.toggle('hidden',!f);e.innerText=f?'Feriado: '+f:'';$('btnHoyDia').classList.toggle('hidden',!sel);}
+function irHoy(){const h=new Date();mes={a:h.getFullYear(),m:h.getMonth()};sel=null;filtrar();}
+function cambiarMes(n){let m=mes.m+n,a=mes.a;if(m<0){m=11;a--}if(m>11){m=0;a++}mes={a:a,m:m};sel=null;filtrar();}
+function selDia(k){sel=(k&&k!==sel)?k:null;filtrar();if(sel)$('anclaLista').scrollIntoView({behavior:'smooth',block:'start'});}
+function calAbierto(v){$('cuerpoCalendario').classList.toggle('hidden',!v);$('txtToggleCal').innerText=v?'Ocultar':'Mostrar';}
+function alternarCal(){const a=$('cuerpoCalendario').classList.contains('hidden');calAbierto(a);try{localStorage.setItem('coordinacion_cal_abierto',a?'1':'0')}catch(e){}}
+function irCal(){calAbierto(true);try{localStorage.setItem('coordinacion_cal_abierto','1')}catch(e){}$('bloqueCalendario').scrollIntoView({behavior:'smooth',block:'start'});}
+
+/* ---------- Filtros ---------- */
+function filtrarVista(v,b){vista=v;sel=null;mes={a:new Date().getFullYear(),m:new Date().getMonth()};document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));b.classList.add('on');filtrar();}
+function filtrar(){
+ const h=new Date();h.setHours(0,0,0,0);
+ const i0=sd(h,-((h.getDay()+6)%7)),f0=sd(i0,7),pf=(a,b)=>new Date(a.fechaInicio)-new Date(b.fechaInicio),pend=e=>estadoDe(e)==='pendiente';
+ let l=[],t='';
+ if(sel){const d=new Date(sel+'T00:00:00'),f=feriado(d);t='Actividades del '+nd(d)+(f?' · Feriado: '+f:'');l=todos.filter(e=>ck(new Date(e.fechaInicio))===sel).sort(pf);}
+ else if(vista==='hoy'){const f=feriado(h);t='Actividades de hoy · '+nd(h)+(f?' · Feriado: '+f:'');l=todos.filter(e=>pend(e)&&ck(new Date(e.fechaInicio))===ck(h)).sort(pf);}
+ else if(vista==='semana'){const fin=sd(i0,6);t='Semana del '+i0.getDate()+' al '+fin.getDate()+' de '+MESES[fin.getMonth()];l=todos.filter(e=>{const d=new Date(e.fechaInicio);return pend(e)&&d>=i0&&d<f0}).sort(pf);}
+ else if(vista==='mes'){t='Mes de '+MESES[h.getMonth()];l=todos.filter(e=>{const d=new Date(e.fechaInicio);return pend(e)&&d.getMonth()===h.getMonth()&&d.getFullYear()===h.getFullYear()}).sort(pf);}
+ else if(vista==='realizadas'){t='Reuniones realizadas';l=todos.filter(e=>estadoDe(e)==='realizada').sort((a,b)=>pf(b,a));}
+ else{t='Reuniones no realizadas (postergadas)';l=todos.filter(e=>estadoDe(e)==='no_realizada').sort((a,b)=>pf(b,a));}
+ $('tituloRangoFechas').innerText=t;navDia();lista(l);cal();
+}
+
+/* ---------- Calendario mensual ---------- */
+function cal(){
+ const H=new Date(),hk=ck(H),A=mes.a,M=mes.m;
+ $('tituloCalendario').innerText=MESES[M]+' '+A;
+ $('btnVerTodoMes').classList.toggle('hidden',!sel);
+ $('btnHoyCalendario').classList.toggle('hidden',A===H.getFullYear()&&M===H.getMonth());
+ const L={};
+ todos.forEach(e=>{const f=new Date(e.fechaInicio);if(f.getFullYear()!==A||f.getMonth()!==M)return;const k=ck(f);(L[k]=L[k]||[]).push(e);});
+ const n=new Date(A,M+1,0).getDate(),p0=(new Date(A,M,1).getDay()+6)%7,t=Math.ceil((p0+n)/7)*7,fm=[];let h='';
+ for(let i=0;i<t;i++){const d=i-p0+1;
+  if(d<1||d>n){h+='<div class="bg-slate-100 min-h-[46px] md:min-h-[104px]"></div>';continue;}
+  const f=new Date(A,M,d),k=ck(f),ev=(L[k]||[]).sort((a,b)=>new Date(a.fechaInicio)-new Date(b.fechaInicio)),fer=feriado(f),fin=f.getDay()%6===0;
+  if(fer)fm.push([k,d,f.getDay(),fer]);
+  const c={pendiente:0,realizada:0,no_realizada:0};ev.forEach(e=>c[estadoDe(e)]++);
+  const dots=(c.pendiente?'<i class="dot bg-indigo-500"></i>':'')+(c.realizada?'<i class="dot bg-emerald-500"></i>':'')+(c.no_realizada?'<i class="dot bg-red-500"></i>':'');
+  const chips=ev.slice(0,2).map(e=>{const s=estadoDe(e);return '<span class="block truncate rounded px-1 text-[11px] leading-5 '+(s==='realizada'?'bg-emerald-100 text-emerald-800':s==='no_realizada'?'bg-red-100 text-red-800':'bg-indigo-100 text-indigo-800')+'">'+hm(new Date(e.fechaInicio))+' '+esc(e.titulo)+'</span>';}).join('')+(ev.length>2?'<span class="text-[10px] font-semibold text-slate-500 pl-1">+'+(ev.length-2)+' más</span>':'');
+  const bg=k===sel?'bg-indigo-50 ring-2 ring-inset ring-indigo-500':k===hk?'bg-indigo-50':fer?'bg-red-50':'bg-white';
+  const num=k===hk?'text-indigo-700 font-extrabold':(fin||fer)?'text-red-600':'text-slate-800';
+  h+='<button onclick="selDia(\''+k+'\')" title="'+(fer?'Feriado: '+fer:'')+'" class="min-h-[46px] md:min-h-[104px] p-1 md:p-2 flex flex-col items-center md:items-start text-left '+bg+'">'+
+   '<span class="flex items-baseline gap-1"><span class="text-base md:text-xl font-medium '+num+'">'+d+'</span><span class="hidden md:inline text-[10px] uppercase font-bold text-slate-400">'+DC[f.getDay()]+'</span></span>'+
+   (fer?'<span class="hidden md:block text-[10px] font-bold text-red-600 leading-tight">'+fer+'</span>':'')+
+   '<span class="flex gap-0.5 mt-0.5 md:hidden">'+dots+'</span>'+
+   '<span class="hidden md:flex flex-col gap-0.5 w-full mt-1">'+chips+'</span></button>';
+ }
+ $('gridCalendario').innerHTML=h;
+ $('feriadosMes').innerHTML=fm.length?'<p class="text-[11px] md:text-xs font-bold uppercase text-slate-400 tracking-wider mb-0.5">Feriados del mes</p>'+fm.map(f=>'<button onclick="selDia(\''+f[0]+'\')" class="block w-full text-left text-[13px] md:text-sm text-red-700 hover:underline py-0.5"><b>'+cap(DC[f[2]])+' '+f[1]+'</b> · '+f[3]+'</button>').join(''):'';
+}
+
+/* ---------- Lista de actividades ---------- */
+function lista(ev){
+ const c=$('listaEventos');
+ if(!ev.length){c.innerHTML='<div class="text-center py-10 bg-white rounded-2xl border-2 border-dashed border-slate-200 text-slate-400"><i class="fa-solid fa-mug-hot text-3xl mb-3"></i><p class="font-medium text-sm">No hay actividades agendadas.</p></div>';return;}
+ c.innerHTML=ev.map(e=>{
+  const a=new Date(e.fechaInicio),b=new Date(e.fechaFin),i=leer(e.descripcion),tp=TIPOS[e.tipo]||TIPOS.Otras,col=tp[0],f=feriado(a);
+  const k=i.estado==='pendiente'&&b<new Date()?'porReg':i.estado,cl=EST[k][0],ic=EST[k][1],et=EST[k][2];
+  const id=e.id;
+  return '<div class="group flex flex-col md:flex-row md:items-center justify-between p-4 md:p-5 bg-white rounded-2xl border border-slate-200 border-l-4 border-l-'+col+'-500 shadow-sm">'+
+  '<div class="flex items-start gap-4 w-full">'+
+   '<div class="flex flex-col items-center justify-center bg-'+col+'-100 text-'+col+'-700 w-14 h-14 rounded-xl flex-shrink-0"><span class="text-[10px] font-bold uppercase">'+MC[a.getMonth()]+'</span><span class="text-xl font-extrabold leading-none">'+a.getDate()+'</span></div>'+
+   '<div class="flex-1 min-w-0"><div class="flex flex-wrap items-center gap-2 mb-1">'+
+    '<span class="bd bg-'+col+'-100 text-'+col+'-700 border-'+col+'-200"><i class="fa-solid '+tp[1]+' mr-1.5"></i>'+(e.tipo||'Otras')+'</span>'+
+    '<button onclick="abrirEstado(\''+id+'\')" title="Cambiar estado" class="bd '+cl+'"><i class="fa-solid '+ic+' mr-1.5"></i>'+et+(k==='no_realizada'&&i.repro?' · Reprogramada para el '+fr(i.repro,i.reproHora):'')+' <i class="fa-solid fa-pen ml-1.5 opacity-60" style="font-size:9px"></i></button>'+
+    (f?'<span class="bd bg-red-50 text-red-700 border-red-200"><i class="fa-solid fa-flag mr-1.5"></i>Feriado: '+f+'</span>':'')+'</div>'+
+    '<h4 class="text-base md:text-lg font-bold break-words">'+esc(e.titulo)+'</h4>'+
+    '<div class="text-sm text-slate-500 mt-1">'+
+     '<p class="font-bold text-slate-700"><i class="fa-regular fa-calendar mr-1.5"></i>'+nd(a)+'</p>'+
+     '<p><i class="fa-regular fa-clock mr-1.5"></i>'+hm(a)+' - '+hm(b)+'</p>'+
+     (i.tel?'<p><i class="fa-solid fa-phone mr-1.5"></i>+'+i.tel+'</p>':'')+
+     (k==='no_realizada'&&i.motivo?'<p class="mt-1 text-red-700 break-words"><b>Motivo:</b> '+esc(i.motivo)+'</p>':'')+
+     (i.desc?'<p class="mt-2 text-slate-600 whitespace-pre-line break-words">'+esc(i.desc)+'</p>':'')+
+    '</div></div></div>'+
+  '<div class="ac flex gap-2 justify-end mt-4 md:mt-0 pt-3 md:pt-0 border-t md:border-0 border-slate-100 md:opacity-0 group-hover:opacity-100 md:pl-4">'+
+   '<button class="ic" onclick="enviarWA(\''+id+'\')" title="Enviar por WhatsApp"><i class="fa-brands fa-whatsapp"></i></button>'+
+   (i.estado!=='realizada'?'<button class="ic" onclick="guardarEstado(\''+id+'\',\'realizada\')" title="Marcar como realizada"><i class="fa-solid fa-check"></i></button>':'')+
+   '<button class="ic" onclick="abrirEstado(\''+id+'\')" title="Cambiar estado"><i class="fa-solid fa-clipboard-check"></i></button>'+
+   '<button class="ic" onclick="editar(\''+id+'\')" title="Editar actividad"><i class="fa-solid fa-pen"></i></button>'+
+   '<button class="ic" onclick="pedirEliminar(\''+id+'\')" title="Eliminar actividad"><i class="fa-solid fa-trash"></i></button>'+
+  '</div></div>';
+ }).join('');
+}
+
+/* ---------- Formulario ---------- */
+function aviso(iso){const f=new Date(iso+'T00:00:00'),r=feriado(f);return nd(f)+(r?' <span class="text-red-600">· Feriado: '+r+'</span>':f.getDay()%6===0?' <span class="text-amber-600">· Fin de semana</span>':'');}
+function diaForm(){const v=$('fecha').value;$('diaSemanaForm').innerHTML=v?aviso(v):'';}
+function diaRepro(){const v=$('fechaReprogramacion').value;$('diaSemanaRepro').innerHTML=v?aviso(v):'';}
+function limpiar(){$('formActividad').reset();$('eventoId').value='';$('tipoActividad').value='';$('duracion').value='60';$('tituloFormulario').innerText='Agendar Actividad';$('btnGuardar').innerText='Guardar Actividad';$('diaSemanaForm').innerHTML='';$('errorFormulario').classList.add('hidden');}
+function nueva(){limpiar();ir('actividades');}
+function editar(id){const e=todos.find(x=>x.id===id);if(!e)return;const a=new Date(e.fechaInicio),b=new Date(e.fechaFin),i=leer(e.descripcion),s=$('tipoActividad');
+ $('eventoId').value=e.id;s.value=Array.from(s.options).some(o=>o.value===e.tipo)?e.tipo:'Otras';
+ $('titulo').value=e.titulo;$('fecha').value=ck(a);$('hora').value=hm(a);$('duracion').value=Math.round((b-a)/60000);$('descripcion').value=i.desc;$('telefono').value=i.tel;diaForm();
+ $('tituloFormulario').innerText='Editar Actividad';$('btnGuardar').innerText='Actualizar Actividad';$('errorFormulario').classList.add('hidden');ir('actividades');}
+async function guardar(ev){ev.preventDefault();const b=$('btnGuardar'),t=b.innerText;b.innerHTML='<i class="fa-solid fa-circle-notch fa-spin"></i>';b.disabled=true;$('errorFormulario').classList.add('hidden');
+ const id=$('eventoId').value,ex=id?todos.find(x=>x.id===id):null,pv=ex?leer(ex.descripcion):{estado:'pendiente',repro:'',reproHora:'',motivo:''};
+ const datos={tipo:$('tipoActividad').value,titulo:$('titulo').value,fecha:$('fecha').value,hora:$('hora').value,duracion:$('duracion').value,alarma:$('alarma').value,
+  descripcion:armar($('descripcion').value.trim(),pv.estado,pv.repro,telNorm($('telefono').value),pv.reproHora,pv.motivo)};
+ let r;try{r=await post({action:id?'actualizar':'crear',id:id,datos:datos});}catch(x){r={exito:false,error:'Error de conexión'};}
+ b.innerHTML=t;b.disabled=false;
+ if(r.exito)ir('panel');else{$('textoErrorFormulario').innerText=r.error;$('errorFormulario').classList.remove('hidden');}}
+function guardarCfg(){const n=$('inputNombreConfig').value.trim();if(n){localStorage.setItem('coordinacion_nombre',n);$('nombreUsuario').innerText=n;}ir('panel');}
+
+/* ---------- Eliminar ---------- */
+function pedirEliminar(id){idElim=id;mostrar('mEliminar');}
+async function ejecutarEliminar(){if(!idElim)return;const b=$('btnConfirmarEliminar');b.innerHTML='<i class="fa-solid fa-circle-notch fa-spin"></i>';b.disabled=true;
+ try{const r=await post({action:'eliminar',id:idElim});b.innerHTML='Eliminar';b.disabled=false;ocultar('mEliminar');idElim=null;if(r.exito)cargar();else alert('Error al eliminar: '+r.error);}
+ catch(x){b.innerHTML='Eliminar';b.disabled=false;alert('Error de conexión');}}
+
+/* ---------- Estado de la reunión ---------- */
+async function guardarEstado(id,estado,repro,hora,motivo){const e=todos.find(x=>x.id===id);if(!e)return;
+ const a=new Date(e.fechaInicio),b=new Date(e.fechaFin),c=leer(e.descripcion);
+ const datos={tipo:e.tipo||'Otras',titulo:e.titulo,fecha:ck(a),hora:hm(a),duracion:Math.round((b-a)/60000),descripcion:armar(c.desc,estado,repro||'',c.tel,hora||'',motivo||'')};
+ try{const r=await post({action:'actualizar',id:id,datos:datos});if(r.exito)cargar();else alert('Error al actualizar el estado: '+r.error);}catch(x){alert('Error de conexión');}}
+function elegirEstado(s){estSel=s;['pendiente','realizada','no_realizada'].forEach(x=>{$('oe-'+x).className='oe'+(x===s?' on-'+x:'');});$('camposNoRealizada').classList.toggle('hidden',s!=='no_realizada');}
+function abrirEstado(id){const e=todos.find(x=>x.id===id);if(!e)return;idEst=id;const i=leer(e.descripcion);
+ $('estadoTituloEvento').innerText=e.titulo;$('motivoNoRealizada').value=i.motivo;$('fechaReprogramacion').value=i.repro;$('horaReprogramacion').value=i.reproHora;diaRepro();elegirEstado(i.estado);mostrar('mEstado');}
+async function confirmarEstado(){if(!idEst)return;let f='',h='',m='';
+ if(estSel==='no_realizada'){m=$('motivoNoRealizada').value.trim();f=$('fechaReprogramacion').value;h=$('horaReprogramacion').value;
+  if(h&&!f){alert('Indicó una hora, pero falta la nueva fecha. Complete la fecha o borre la hora.');return;}}
+ const b=$('btnConfirmarEstado');b.innerHTML='<i class="fa-solid fa-circle-notch fa-spin"></i>';b.disabled=true;
+ await guardarEstado(idEst,estSel,f,h,m);b.innerHTML='Guardar';b.disabled=false;ocultar('mEstado');idEst=null;}
+
+/* ---------- WhatsApp ---------- */
+function enviarWA(id){const e=todos.find(x=>x.id===id);if(!e)return;const i=leer(e.descripcion),a=new Date(e.fechaInicio),b=new Date(e.fechaFin);
+ let t='*'+(e.tipo||'Actividad')+'*\n'+e.titulo+'\n\n📅 '+nd(a)+'\n🕐 '+hm(a)+' a '+hm(b);
+ if(i.desc)t+='\n\n'+i.desc;
+ if(i.estado==='no_realizada'){t+='\n\n⚠️ Esta reunión no se realizó.';if(i.motivo)t+='\nMotivo: '+i.motivo+'.';if(i.repro)t+='\nNueva fecha: '+fr(i.repro,i.reproHora)+'.';}
+ t+='\n\nCoordinación UTP - Colegio Marina de Chile';
+ window.open('https://wa.me/'+(i.tel||'')+'?text='+encodeURIComponent(t),'_blank');}
+
+/* ---------- Reporte PDF ---------- */
+function abrirReporte(){$('optRepMesCal').textContent='Mes del calendario ('+MESES[mes.m]+' '+mes.a+')';$('repPeriodo').value='mes_calendario';
+ $('repDesde').value=ck(new Date(mes.a,mes.m,1));$('repHasta').value=ck(new Date(mes.a,mes.m+1,0));repRango();mostrar('mReporte');}
+function repRango(){$('repRango').classList.toggle('hidden',$('repPeriodo').value!=='rango');}
+function rangoRep(){const t=$('repPeriodo').value,h=new Date();h.setHours(0,0,0,0);let d,f,x;
+ if(t==='hoy'){d=h;f=sd(h,1);x=nd(h)+' de '+h.getFullYear();}
+ else if(t==='semana'){d=sd(h,-((h.getDay()+6)%7));f=sd(d,7);x='Semana del '+fi_(ck(d))+' al '+fi_(ck(sd(f,-1)));}
+ else if(t==='mes_calendario'){d=new Date(mes.a,mes.m,1);f=new Date(mes.a,mes.m+1,1);x=MESES[mes.m]+' de '+mes.a;}
+ else{const a=$('repDesde').value,b=$('repHasta').value;if(!a||!b)return{error:'Indique la fecha de inicio y la fecha de término.'};
+  d=new Date(a+'T00:00:00');const z=new Date(b+'T00:00:00');if(z<d)return{error:'La fecha de término no puede ser anterior a la de inicio.'};f=sd(z,1);x='Del '+fi_(a)+' al '+fi_(b);}
+ return{d:d,f:f,x:x};}
+function limpiarPdf(t){return String(t||'').replace(/[\u2013\u2014]/g,'-').replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"').replace(/\u2022/g,'-').replace(/[^\x09\x0A\x0D\x20-\x7E\u00A0-\u00FF]/g,'').trim();}
+function resumir(t,m){const s=String(t||'').replace(/\s+/g,' ').trim();return s.length>m?s.slice(0,m-3).trim()+'...':s;}
+function cargarLogo(){if(LOGO)return Promise.resolve(LOGO);
+ return new Promise(r=>{const i=new Image();i.crossOrigin='anonymous';
+  i.onload=()=>{try{const c=document.createElement('canvas');c.width=i.naturalWidth;c.height=i.naturalHeight;c.getContext('2d').drawImage(i,0,0);LOGO={d:c.toDataURL('image/png'),w:i.naturalWidth,h:i.naturalHeight};r(LOGO);}catch(e){r(null);}};
+  i.onerror=()=>r(null);i.src='INSIGNIA.png';});}
+const TXT_EST={todas:'Todas',pendiente:'Solo pendientes (incluye por registrar)',realizada:'Solo realizadas',no_realizada:'Solo no realizadas'};
+async function descargarPDF(){
+ if(!(window.jspdf&&window.jspdf.jsPDF)){alert('No se pudo cargar el generador de PDF. Revise su conexión a internet y actualice la página.');return;}
+ const rg=rangoRep();if(rg.error){alert(rg.error);return;}
+ const fe=$('repEstado').value,inD=$('repDescripcion').checked,inT=$('repTelefono').checked;
+ const ev=todos.filter(e=>{const f=new Date(e.fechaInicio);return f>=rg.d&&f<rg.f;}).filter(e=>fe==='todas'||estadoDe(e)===fe).sort((a,b)=>new Date(a.fechaInicio)-new Date(b.fechaInicio));
+ if(!ev.length){alert('No hay actividades para el período y estado elegidos.');return;}
+ const bt=$('btnDescargarReporte'),tb=bt.innerHTML;bt.innerHTML='<i class="fa-solid fa-circle-notch fa-spin"></i>';bt.disabled=true;
+ try{
+  const ahora=new Date(),logo=await cargarLogo(),c={total:ev.length,r:0,n:0,p:0,g:0};
+  ev.forEach(e=>{const s=estadoDe(e);if(s==='realizada')c.r++;else if(s==='no_realizada')c.n++;else if(new Date(e.fechaFin)<ahora)c.g++;else c.p++;});
+  const filas=ev.map((e,i)=>{const a=new Date(e.fechaInicio),b=new Date(e.fechaFin),n=leer(e.descripcion);
+   let s='Pendiente';if(n.estado==='realizada')s='Realizada';else if(n.estado==='no_realizada')s='No realizada';else if(b<ahora)s='Por registrar';
+   const o=[];if(n.estado==='no_realizada'){if(n.motivo)o.push('Motivo: '+n.motivo);if(n.repro)o.push('Reprogramada para: '+fr(n.repro,n.reproHora));}
+   const fer=feriado(a);if(fer)o.push('Feriado: '+fer);if(inD&&n.desc)o.push(resumir(n.desc,220));if(inT&&n.tel)o.push('Tel.: +'+n.tel);
+   return[i+1,limpiarPdf(cap(a.toLocaleDateString('es-CL',{weekday:'long'}))+'\n'+fi_(ck(a))),hm(a)+' - '+hm(b),limpiarPdf(e.tipo||'Otras'),limpiarPdf(e.titulo),s,limpiarPdf(o.join('\n'))||'-'];});
+  const doc=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'letter'});
+  if(typeof doc.autoTable!=='function')throw new Error('Falta el complemento de tablas del PDF');
+  const W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight(),L=14,R=14;
+  let x=L;
+  if(logo){const al=22,an=al*logo.w/logo.h;doc.addImage(logo.d,'PNG',L,10,an,al);x=L+an+5;}
+  doc.setTextColor(15,23,42);doc.setFont('helvetica','bold');doc.setFontSize(16);doc.text('COLEGIO MARINA DE CHILE',x,17);
+  doc.setFont('helvetica','normal');doc.setFontSize(11);doc.text('Coordinación UTP',x,23);
+  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(185,28,47);doc.text('Reporte de agenda de actividades',x,30);
+  doc.setTextColor(71,85,105);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text('Fecha de emisión: '+fi_(ck(ahora))+' '+hm(ahora),W-R,17,{align:'right'});
+  doc.setDrawColor(185,28,47);doc.setLineWidth(.8);doc.line(L,36,W-R,36);
+  doc.setTextColor(15,23,42);doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text('Período:',L,43);doc.setFont('helvetica','normal');doc.text(limpiarPdf(rg.x),L+20,43);
+  doc.setFont('helvetica','bold');doc.text('Estado:',L,49);doc.setFont('helvetica','normal');doc.text(TXT_EST[fe],L+20,49);
+  doc.autoTable({startY:54,head:[['Total','Realizadas','No realizadas','Pendientes','Por registrar']],body:[[c.total,c.r,c.n,c.p,c.g]],theme:'grid',margin:{left:L},tableWidth:150,
+   styles:{fontSize:10,halign:'center',cellPadding:2},headStyles:{fillColor:[241,245,249],textColor:[51,65,85]},bodyStyles:{fontStyle:'bold',textColor:[15,23,42]}});
+  doc.autoTable({startY:doc.lastAutoTable.finalY+8,head:[['N°','Fecha','Horario','Tipo','Actividad','Estado','Observaciones']],body:filas,theme:'grid',
+   margin:{top:30,left:L,right:R,bottom:20},rowPageBreak:'avoid',styles:{fontSize:9,cellPadding:2,valign:'top',textColor:[30,41,59]},
+   headStyles:{fillColor:[15,23,42],textColor:255},alternateRowStyles:{fillColor:[248,250,252]},
+   columnStyles:{0:{cellWidth:10,halign:'center'},1:{cellWidth:30},2:{cellWidth:26},3:{cellWidth:32},4:{cellWidth:56},5:{cellWidth:26}},
+   didParseCell:d=>{if(d.section==='body'&&d.column.index===5){const t=String(d.cell.raw);d.cell.styles.textColor=t==='Realizada'?[4,120,87]:t==='No realizada'?[185,28,28]:t==='Por registrar'?[180,83,9]:[67,56,202];d.cell.styles.fontStyle='bold';}}});
+  let y=doc.lastAutoTable.finalY+14;if(y+30>H-20){doc.addPage();y=40;}
+  const nf=limpiarPdf(localStorage.getItem('coordinacion_nombre')||'');
+  doc.setDrawColor(100,116,139);doc.setLineWidth(.3);doc.line(L+10,y+14,L+90,y+14);doc.line(W-R-90,y+14,W-R-10,y+14);
+  doc.setFontSize(9);doc.setTextColor(15,23,42);
+  if(nf){doc.setFont('helvetica','bold');doc.text(nf,L+50,y+19,{align:'center'});doc.setFont('helvetica','normal');doc.text('Elaborado por',L+50,y+24,{align:'center'});}
+  else{doc.setFont('helvetica','normal');doc.text('Elaborado por',L+50,y+19,{align:'center'});}
+  doc.setFont('helvetica','normal');doc.text('Visto bueno',W-R-50,y+19,{align:'center'});
+  const N=doc.internal.getNumberOfPages();
+  for(let p=1;p<=N;p++){doc.setPage(p);
+   if(p>1){let xt=L;if(logo){const al=11,an=al*logo.w/logo.h;doc.addImage(logo.d,'PNG',L,8,an,al);xt=L+an+4;}
+    doc.setTextColor(15,23,42);doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Colegio Marina de Chile - Coordinación UTP',xt,13);
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(71,85,105);doc.text('Reporte de agenda de actividades - '+limpiarPdf(rg.x),xt,18);
+    doc.setDrawColor(185,28,47);doc.setLineWidth(.5);doc.line(L,22,W-R,22);}
+   doc.setDrawColor(203,213,225);doc.setLineWidth(.3);doc.line(L,H-14,W-R,H-14);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(100,116,139);
+   doc.text('Colegio Marina de Chile - Coordinación UTP',L,H-9);doc.text('Página '+p+' de '+N,W-R,H-9,{align:'right'});}
+  doc.save('Reporte_Agenda_Coordinacion_'+ck(ahora)+'.pdf');ocultar('mReporte');
+  if(!logo)alert('El reporte se generó sin logo porque no se pudo cargar el archivo INSIGNIA.png.');
+ }catch(e){console.error(e);alert('No se pudo generar el PDF. Intente nuevamente.');}
+ finally{bt.innerHTML=tb;bt.disabled=false;}
+}
+
+/* ---------- Inicio ---------- */
+window.onload=function(){
+ const n=localStorage.getItem('coordinacion_nombre');
+ if(n){$('nombreUsuario').innerText=n;$('inputNombreConfig').value=n;}
+ let g=null;try{g=localStorage.getItem('coordinacion_cal_abierto')}catch(e){}
+ calAbierto(g!=='0');navDia();cal();cargar();
+};
+</script>
+</body>
+</html>
